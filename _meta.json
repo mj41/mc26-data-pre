@@ -1,0 +1,13 @@
+{
+  "id": "26.3-pre-3",
+  "name": "26.3 Pre-Release 3",
+  "world_version": 5019,
+  "protocol_version": 1073742159,
+  "java_version": 25,
+  "stable": false,
+  "server_jar_url": "https://piston-data.mojang.com/v1/objects/74b30963f532fa08c5f32311cc7caa0de41bf29e/server.jar",
+  "server_jar_sha1": "74b30963f532fa08c5f32311cc7caa0de41bf29e",
+  "extractor_repo": "github.com/mj41/mc26",
+  "extractor_commit": "190a89967ae4",
+  "extracted_at": "2026-10-03T15:42:17Z"
+}

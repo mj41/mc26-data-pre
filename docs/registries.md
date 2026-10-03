@@ -1,0 +1,5231 @@
+# Registry elements and shared NBT types
+
+<!-- This file is a template: gen/docs/registries.mc26tmpl.md, rendered by `mc26 docs`. -->
+
+The registries a server of Minecraft 26.3-pre-3 sends its clients in the
+configuration state (`registry_data`), with the NBT shape of each element as `nbt_schema.json`
+describes it, and the shared types the game reads the same way: the text component, the chat
+style and events, and the codec-built records of a world save.
+
+A shape is a compound: each line is a key and what its tag holds. A key marked `?` is optional,
+with its default when the codec has one. A `dispatch` is a compound whose named key selects
+one of the cases, each adding its own keys next to it. `id in <registry>` is a string, the
+element's namespaced id; `id in <registry> or inline` may instead be the element itself as a
+compound. `either` is whichever side decodes; `list` a TAG_List; a map a compound with
+arbitrary keys. A name followed by `again` is the enclosing type of that name: the codec
+contains itself.
+
+## Registries
+
+| entry | Java | shape |
+|---|---|---|
+| [`minecraft:banner_pattern`](#registries-minecraft-banner_pattern) | `net.minecraft.world.level.block.entity.BannerPattern` | struct `BannerPattern` |
+| [`minecraft:block_transformer`](#registries-minecraft-block_transformer) | `net.minecraft.core.component.BlockTransformer` | list of struct `BlockTransformer$BlockTransformData` |
+| [`minecraft:cat_sound_variant`](#registries-minecraft-cat_sound_variant) | `net.minecraft.world.entity.animal.feline.CatSoundVariant` | struct `CatSoundVariant` |
+| [`minecraft:cat_variant`](#registries-minecraft-cat_variant) | `net.minecraft.world.entity.animal.feline.CatVariant` | struct `CatVariant` |
+| [`minecraft:chat_type`](#registries-minecraft-chat_type) | `net.minecraft.network.chat.ChatType` | struct `ChatType` |
+| [`minecraft:chicken_sound_variant`](#registries-minecraft-chicken_sound_variant) | `net.minecraft.world.entity.animal.chicken.ChickenSoundVariant` | struct `ChickenSoundVariant` |
+| [`minecraft:chicken_variant`](#registries-minecraft-chicken_variant) | `net.minecraft.world.entity.animal.chicken.ChickenVariant` | struct `ChickenVariant` |
+| [`minecraft:cow_sound_variant`](#registries-minecraft-cow_sound_variant) | `net.minecraft.world.entity.animal.cow.CowSoundVariant` | struct `CowSoundVariant` |
+| [`minecraft:cow_variant`](#registries-minecraft-cow_variant) | `net.minecraft.world.entity.animal.cow.CowVariant` | struct `CowVariant` |
+| [`minecraft:damage_type`](#registries-minecraft-damage_type) | `net.minecraft.world.damagesource.DamageType` | struct `DamageType` |
+| [`minecraft:decorated_pot_pattern`](#registries-minecraft-decorated_pot_pattern) | `net.minecraft.world.level.block.entity.DecoratedPotPattern` | struct `DecoratedPotPattern` |
+| [`minecraft:dialog`](#registries-minecraft-dialog) | `net.minecraft.server.dialog.Dialog` | dispatch `Dialog` on ? |
+| [`minecraft:dimension_type`](#registries-minecraft-dimension_type) | `net.minecraft.world.level.dimension.DimensionType` | struct `DimensionType` |
+| [`minecraft:enchantment`](#registries-minecraft-enchantment) | `net.minecraft.world.item.enchantment.Enchantment` | struct `Enchantment` |
+| [`minecraft:frog_variant`](#registries-minecraft-frog_variant) | `net.minecraft.world.entity.animal.frog.FrogVariant` | struct `FrogVariant` |
+| [`minecraft:instrument`](#registries-minecraft-instrument) | `net.minecraft.world.item.Instrument` | struct `Instrument` |
+| [`minecraft:jukebox_song`](#registries-minecraft-jukebox_song) | `net.minecraft.world.item.JukeboxSong` | struct `JukeboxSong` |
+| [`minecraft:painting_variant`](#registries-minecraft-painting_variant) | `net.minecraft.world.entity.decoration.painting.PaintingVariant` | struct `PaintingVariant` |
+| [`minecraft:pig_sound_variant`](#registries-minecraft-pig_sound_variant) | `net.minecraft.world.entity.animal.pig.PigSoundVariant` | struct `PigSoundVariant` |
+| [`minecraft:pig_variant`](#registries-minecraft-pig_variant) | `net.minecraft.world.entity.animal.pig.PigVariant` | struct `PigVariant` |
+| [`minecraft:sulfur_cube_archetype`](#registries-minecraft-sulfur_cube_archetype) | `net.minecraft.world.entity.SulfurCubeArchetype` | struct `SulfurCubeArchetype` |
+| [`minecraft:test_environment`](#registries-minecraft-test_environment) | `net.minecraft.gametest.framework.TestEnvironmentDefinition` | dispatch `TestEnvironmentDefinition` on ? |
+| [`minecraft:test_instance`](#registries-minecraft-test_instance) | `net.minecraft.gametest.framework.GameTestInstance` | dispatch `GameTestInstance` on ? |
+| [`minecraft:timeline`](#registries-minecraft-timeline) | `net.minecraft.world.timeline.Timeline` | struct `Timeline` |
+| [`minecraft:trim_material`](#registries-minecraft-trim_material) | `net.minecraft.world.item.equipment.trim.TrimMaterial` | struct `TrimMaterial` |
+| [`minecraft:trim_pattern`](#registries-minecraft-trim_pattern) | `net.minecraft.world.item.equipment.trim.TrimPattern` | struct `TrimPattern` |
+| [`minecraft:wolf_sound_variant`](#registries-minecraft-wolf_sound_variant) | `net.minecraft.world.entity.animal.wolf.WolfSoundVariant` | struct `WolfSoundVariant` |
+| [`minecraft:wolf_variant`](#registries-minecraft-wolf_variant) | `net.minecraft.world.entity.animal.wolf.WolfVariant` | struct `WolfVariant` |
+| [`minecraft:world_clock`](#registries-minecraft-world_clock) | `net.minecraft.world.clock.WorldClock` | nothing |
+| [`minecraft:worldgen/biome`](#registries-minecraft-worldgen-biome) | `net.minecraft.world.level.biome.Biome` | struct `Biome` |
+| [`minecraft:worldgen/block_state_provider`](#registries-minecraft-worldgen-block_state_provider) | `net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider` | either struct `BlockState` or dispatch `BlockStateProvider` on ? |
+| [`minecraft:zombie_nautilus_variant`](#registries-minecraft-zombie_nautilus_variant) | `net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant` | struct `ZombieNautilusVariant` |
+
+<a id="registries-minecraft-banner_pattern"></a>
+### minecraft:banner_pattern
+
+`net.minecraft.world.level.block.entity.BannerPattern`.DIRECT_CODEC
+
+- `asset_id`: `IDENTIFIER`
+- `translation_key`: `STRING`
+
+<a id="registries-minecraft-block_transformer"></a>
+### minecraft:block_transformer
+
+`net.minecraft.core.component.BlockTransformer`.DIRECT_CODEC
+
+- each: compound `BlockTransformer$BlockTransformData`
+  - `block_state_provider`: recursive `BlockStateProvider`
+    - the codec: id in minecraft:worldgen/block_state_provider or inline
+      - inline: one of
+        - either: compound `BlockState`
+          - `id`: id in minecraft:block
+          - `properties`?: map of `STRING` to `STRING`
+        - or: compound, `type` (id in minecraft:worldgen/block_state_provider_type) selects
+          - `minecraft:copy_properties`: compound `CopyPropertiesProvider`
+            - `source`: a `BlockStateProvider` again
+          - `minecraft:dual_noise`: compound `DualNoiseProvider`
+            - `variety`: either `INT` or list of `INT`
+            - `slow_noise`: compound `NormalNoise$Parameters`
+              - `base_amplitude`? (default 1.0): `DOUBLE`
+              - `base_octave`: `INT`
+              - `octave_count`? (default 1): `INT`
+              - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+              - `amplitude_modifiers`? (default of): list of `DOUBLE`
+            - `slow_scale`: `FLOAT`
+            - `seed`: `LONG`
+            - `noise`: compound `NormalNoise$Parameters`
+              - `base_amplitude`? (default 1.0): `DOUBLE`
+              - `base_octave`: `INT`
+              - `octave_count`? (default 1): `INT`
+              - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+              - `amplitude_modifiers`? (default of): list of `DOUBLE`
+            - `scale`: `FLOAT`
+            - `states`: list
+              - each: one of
+                - either: id in minecraft:block
+                - or: compound `BlockState`
+                  - `id`: id in minecraft:block
+                  - `properties`?: map of `STRING` to `STRING`
+          - `minecraft:noise`: compound `NoiseProvider`
+            - `seed`: `LONG`
+            - `noise`: compound `NormalNoise$Parameters`
+              - `base_amplitude`? (default 1.0): `DOUBLE`
+              - `base_octave`: `INT`
+              - `octave_count`? (default 1): `INT`
+              - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+              - `amplitude_modifiers`? (default of): list of `DOUBLE`
+            - `scale`: `FLOAT`
+            - `states`: list
+              - each: one of
+                - either: id in minecraft:block
+                - or: compound `BlockState`
+                  - `id`: id in minecraft:block
+                  - `properties`?: map of `STRING` to `STRING`
+          - `minecraft:noise_threshold`: compound `NoiseThresholdProvider`
+            - `seed`: `LONG`
+            - `noise`: compound `NormalNoise$Parameters`
+              - `base_amplitude`? (default 1.0): `DOUBLE`
+              - `base_octave`: `INT`
+              - `octave_count`? (default 1): `INT`
+              - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+              - `amplitude_modifiers`? (default of): list of `DOUBLE`
+            - `scale`: `FLOAT`
+            - `threshold`: `FLOAT`
+            - `high_chance`: `FLOAT`
+            - `default_state`: one of
+              - either: id in minecraft:block
+              - or: compound `BlockState`
+                - `id`: id in minecraft:block
+                - `properties`?: map of `STRING` to `STRING`
+            - `low_states`: list
+              - each: one of
+                - either: id in minecraft:block
+                - or: compound `BlockState`
+                  - `id`: id in minecraft:block
+                  - `properties`?: map of `STRING` to `STRING`
+            - `high_states`: list
+              - each: one of
+                - either: id in minecraft:block
+                - or: compound `BlockState`
+                  - `id`: id in minecraft:block
+                  - `properties`?: map of `STRING` to `STRING`
+          - `minecraft:random_block`: compound `RandomBlockProvider`
+            - `blocks`: set of minecraft:block (a tag or ids)
+          - `minecraft:randomized_int`: compound `RandomizedIntStateProvider`
+            - `source`: a `BlockStateProvider` again
+            - `property`: `STRING`
+            - `values`: one of
+              - either: `INT`
+              - or: compound, `type` (id in minecraft:int_provider_type) selects
+                - `minecraft:constant`: compound `ConstantInt`
+                  - `value`: `INT`
+                - `minecraft:uniform`: compound `UniformInt`
+                  - `min_inclusive`: `INT`
+                  - `max_inclusive`: `INT`
+                - `minecraft:biased_to_bottom`: compound `BiasedToBottomInt`
+                  - `min_inclusive`: `INT`
+                  - `max_inclusive`: `INT`
+                - `minecraft:very_biased_to_bottom`: compound `VeryBiasedToBottomInt`
+                  - `min_inclusive`: `INT`
+                  - `max_inclusive`: `INT`
+                - `minecraft:clamped`: compound `ClampedInt`
+                  - `source`: either `INT` or a `IntProviders` again
+                  - `min_inclusive`: `INT`
+                  - `max_inclusive`: `INT`
+                - `minecraft:weighted_list`: compound `WeightedListInt`
+                  - `distribution`: list
+                    - each: compound `Weighted`
+                      - `data`: either `INT` or a `IntProviders` again
+                      - `weight`: `INT`
+                - `minecraft:clamped_normal`: compound `ClampedNormalInt`
+                  - `mean`: `FLOAT`
+                  - `deviation`: `FLOAT`
+                  - `min_inclusive`: `INT`
+                  - `max_inclusive`: `INT`
+                - `minecraft:trapezoid`: compound `TrapezoidInt`
+                  - `min`: `INT`
+                  - `max`: `INT`
+                  - `plateau`: `INT`
+          - `minecraft:rotated`: compound `RotatedBlockProvider`
+            - `state`: a `BlockStateProvider` again
+            - `direction`?: enum `Direction` (var int, ids down/up/north/south/west/east: DOWN, UP, NORTH, SOUTH, WEST, EAST)
+          - `minecraft:rule_based`: compound `RuleBasedStateProvider`
+            - `fallback`?: a `BlockStateProvider` again
+            - `rules`: list
+              - each: compound `RuleBasedStateProvider$Rule`
+                - `if_true`: compound, `type` (id in minecraft:block_predicate_type) selects
+                  - `minecraft:matching_blocks`: compound `MatchingBlocksPredicate`
+                    - `offset`? (default ZERO): `INT_ARRAY`
+                    - `blocks`: set of minecraft:block (a tag or ids)
+                  - `minecraft:matching_block_tag`: compound `MatchingBlockTagPredicate`
+                    - `offset`? (default ZERO): `INT_ARRAY`
+                    - `tag`: `IDENTIFIER`
+                  - `minecraft:matching_fluids`: compound `MatchingFluidsPredicate`
+                    - `offset`? (default ZERO): `INT_ARRAY`
+                    - `fluids`: set of minecraft:fluid (a tag or ids)
+                  - `minecraft:matching_biomes`: compound `MatchingBiomesPredicate`
+                    - `biomes`: set of minecraft:worldgen/biome (a tag or ids)
+                  - `minecraft:has_sturdy_face`: compound `HasSturdyFacePredicate`
+                    - `offset`? (default ZERO): `INT_ARRAY`
+                    - `direction`: enum `Direction` (var int, ids down/up/north/south/west/east: DOWN, UP, NORTH, SOUTH, WEST, EAST)
+                  - `minecraft:solid`: compound `SolidPredicate`
+                    - `offset`? (default ZERO): `INT_ARRAY`
+                  - `minecraft:replaceable`: compound `ReplaceablePredicate`
+                    - `offset`? (default ZERO): `INT_ARRAY`
+                  - `minecraft:would_survive`: compound `WouldSurvivePredicate`
+                    - `offset`? (default ZERO): `INT_ARRAY`
+                    - `state`: one of
+                      - either: id in minecraft:block
+                      - or: compound `BlockState`
+                        - `id`: id in minecraft:block
+                        - `properties`?: map of `STRING` to `STRING`
+                  - `minecraft:inside_world_bounds`: compound `InsideWorldBoundsPredicate`
+                    - `offset`? (default ZERO): `INT_ARRAY`
+                  - `minecraft:any_of`: compound `AnyOfPredicate`
+                    - `predicates`: list of a `BlockPredicate` again
+                  - `minecraft:all_of`: compound `AllOfPredicate`
+                    - `predicates`: list of a `BlockPredicate` again
+                  - `minecraft:not`: compound `NotPredicate`
+                    - `predicate`: a `BlockPredicate` again
+                  - `minecraft:true`: nothing
+                  - `minecraft:unobstructed`: compound `UnobstructedPredicate`
+                    - `offset`? (default ZERO): `INT_ARRAY`
+                  - `minecraft:height_range`: compound `HeightRangePredicate`
+                    - `min_inclusive`: either field or either field or either field or field
+                    - `max_inclusive`: either field or either field or either field or field
+                  - `minecraft:volume_match`: compound `VolumeMatchPredicate`
+                    - `min`: `INT_ARRAY`
+                    - `max`: `INT_ARRAY`
+                    - `match`: a `BlockPredicate` again
+                - `then`: a `BlockStateProvider` again
+          - `minecraft:simple`: compound `Simple`
+            - `state`: one of
+              - either: id in minecraft:block
+              - or: compound `BlockState`
+                - `id`: id in minecraft:block
+                - `properties`?: map of `STRING` to `STRING`
+          - `minecraft:weighted`: compound `WeightedStateProvider`
+            - `entries`: list
+              - each: compound `Weighted`
+                - `data`: one of
+                  - either: id in minecraft:block
+                  - or: compound `BlockState`
+                    - `id`: id in minecraft:block
+                    - `properties`?: map of `STRING` to `STRING`
+                - `weight`: `INT`
+  - `sound`? (default wrapAsHolder): id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `particle`? (default NONE): enum `BlockTransformer$TransformParticle` (var int, ids none/scrape/wax_on/wax_off: NONE, SCRAPE, WAX_ON, WAX_OFF)
+  - `disallowed_faces`? (default []): list of enum `Direction` (var int, ids down/up/north/south/west/east: DOWN, UP, NORTH, SOUTH, WEST, EAST)
+  - `loot`?: resource key in minecraft:loot_table
+  - `drop_strategy`? (default FROM_MIDDLE): enum `BlockTransformer$DropStrategy` (var int, ids clicked_face/from_middle: CLICKED_FACE, FROM_MIDDLE)
+  - `update_from_neighbors`? (default true): `BOOL`
+  - `transform_type`? (default SINGLE_BLOCK): enum `BlockTransformer$TransformType` (var int, ids single_block/copper_chest: SINGLE_BLOCK, COPPER_CHEST)
+  - `consume_on_use`? (default true): `BOOL`
+  - `item_damage_per_use`? (default 0): `INT`
+
+<a id="registries-minecraft-cat_sound_variant"></a>
+### minecraft:cat_sound_variant
+
+`net.minecraft.world.entity.animal.feline.CatSoundVariant`.NETWORK_CODEC
+
+- `adult_sounds`: compound `CatSoundVariant$CatSoundSet`
+  - `ambient_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `stray_ambient_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `hiss_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `hurt_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `death_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `eat_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `beg_for_food_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `purr_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `purreow_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+- `baby_sounds`: compound `CatSoundVariant$CatSoundSet`
+  - `ambient_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `stray_ambient_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `hiss_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `hurt_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `death_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `eat_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `beg_for_food_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `purr_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `purreow_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+
+<a id="registries-minecraft-cat_variant"></a>
+### minecraft:cat_variant
+
+`net.minecraft.world.entity.animal.feline.CatVariant`.NETWORK_CODEC
+
+- `asset_id`: `IDENTIFIER`
+- `baby_asset_id`: `IDENTIFIER`
+
+<a id="registries-minecraft-chat_type"></a>
+### minecraft:chat_type
+
+`net.minecraft.network.chat.ChatType`.DIRECT_CODEC
+
+- `chat`: compound `ChatTypeDecoration`
+  - `translation_key`: `STRING`
+  - `parameters`: list of enum `ChatTypeDecoration$Parameter` (var int, ids sender/target/content: SENDER, TARGET, CONTENT)
+  - `style`? (default EMPTY): compound `Style`
+    - `color`?: `STRING`
+    - `shadow_color`?: `INT`
+    - `bold`?: `BOOL`
+    - `italic`?: `BOOL`
+    - `underlined`?: `BOOL`
+    - `strikethrough`?: `BOOL`
+    - `obfuscated`?: `BOOL`
+    - `click_event`?: compound, `action` (enum `ClickEvent$Action` (var int, ids open_url/open_file/run_command/suggest_command/show_dialog/change_page/copy_to_clipboard/custom: OPEN_URL, OPEN_FILE, RUN_COMMAND, SUGGEST_COMMAND, SHOW_DIALOG, CHANGE_PAGE, COPY_TO_CLIPBOARD, CUSTOM)) selects
+      - `open_url`: compound `ClickEvent$OpenUrl`
+        - `url`: `STRING`
+      - `open_file`: compound `ClickEvent$OpenFile`
+        - `path`: `STRING`
+      - `run_command`: compound `ClickEvent$RunCommand`
+        - `command`: `STRING`
+      - `suggest_command`: compound `ClickEvent$SuggestCommand`
+        - `command`: `STRING`
+      - `show_dialog`: compound `ClickEvent$ShowDialog`
+        - `dialog`: id in minecraft:dialog or inline
+          - inline: compound, `type` (id in minecraft:dialog_type) selects
+            - `minecraft:notice`: compound `NoticeDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `action`? (default DEFAULT_ACTION): compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+            - `minecraft:server_links`: compound `ServerLinksDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `exit_action`?: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+              - `columns`? (default 2): `INT`
+              - `button_width`? (default 150): recursive `ServerLinksDialog.WIDTH_CODEC`: `INT`
+            - `minecraft:dialog_list`: compound `DialogListDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `dialogs`: set of minecraft:dialog (a tag or ids)
+              - `exit_action`?: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+              - `columns`? (default 2): `INT`
+              - `button_width`? (default 150): recursive `DialogListDialog.WIDTH_CODEC`: `INT`
+            - `minecraft:multi_action`: compound `MultiActionDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `actions`: list
+                - each: compound `ActionButton`
+                  - `label`: a text component
+                  - `tooltip`?: a text component
+                  - `width`? (default 150): `INT`
+                  - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                    - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                      - `url`: `STRING`
+                    - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                      - `command`: `STRING`
+                    - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                      - `command`: `STRING`
+                    - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                    - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                      - `page`: `INT`
+                    - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                      - `value`: `STRING`
+                    - `minecraft:custom`: compound `ClickEvent$Custom`
+                      - `id`: `IDENTIFIER`
+                      - `payload`?: an NBT tag
+                    - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                      - `template`: `STRING`
+                    - `minecraft:dynamic/custom`: compound `CustomAll`
+                      - `id`: `IDENTIFIER`
+                      - `additions`?: an NBT tag
+              - `exit_action`?: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+              - `columns`? (default 2): `INT`
+            - `minecraft:confirmation`: compound `ConfirmationDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `yes`: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+              - `no`: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+      - `change_page`: compound `ClickEvent$ChangePage`
+        - `page`: `INT`
+      - `copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+        - `value`: `STRING`
+      - `custom`: compound `ClickEvent$Custom`
+        - `id`: `IDENTIFIER`
+        - `payload`?: an NBT tag
+    - `hover_event`?: compound, `action` (enum `HoverEvent$Action` (var int, ids show_text/show_item/show_entity: SHOW_TEXT, SHOW_ITEM, SHOW_ENTITY)) selects
+      - `show_text`: compound `HoverEvent$ShowText`
+        - `value`: a text component
+      - `show_item`: compound `ItemStackTemplate`
+        - `id`: id in minecraft:item
+        - `count`? (default 1): `INT`
+        - `components`? (default EMPTY): an NBT tag
+      - `show_entity`: compound `HoverEvent$ShowEntity`
+        - `id`: id in minecraft:entity_type
+        - `uuid`: `UUID_LENIENT`
+        - `name`?: a text component
+    - `insertion`?: `STRING`
+    - `font`?: `IDENTIFIER`
+- `narration`: compound `ChatTypeDecoration`
+  - `translation_key`: `STRING`
+  - `parameters`: list of enum `ChatTypeDecoration$Parameter` (var int, ids sender/target/content: SENDER, TARGET, CONTENT)
+  - `style`? (default EMPTY): compound `Style`
+    - `color`?: `STRING`
+    - `shadow_color`?: `INT`
+    - `bold`?: `BOOL`
+    - `italic`?: `BOOL`
+    - `underlined`?: `BOOL`
+    - `strikethrough`?: `BOOL`
+    - `obfuscated`?: `BOOL`
+    - `click_event`?: compound, `action` (enum `ClickEvent$Action` (var int, ids open_url/open_file/run_command/suggest_command/show_dialog/change_page/copy_to_clipboard/custom: OPEN_URL, OPEN_FILE, RUN_COMMAND, SUGGEST_COMMAND, SHOW_DIALOG, CHANGE_PAGE, COPY_TO_CLIPBOARD, CUSTOM)) selects
+      - `open_url`: compound `ClickEvent$OpenUrl`
+        - `url`: `STRING`
+      - `open_file`: compound `ClickEvent$OpenFile`
+        - `path`: `STRING`
+      - `run_command`: compound `ClickEvent$RunCommand`
+        - `command`: `STRING`
+      - `suggest_command`: compound `ClickEvent$SuggestCommand`
+        - `command`: `STRING`
+      - `show_dialog`: compound `ClickEvent$ShowDialog`
+        - `dialog`: id in minecraft:dialog or inline
+          - inline: compound, `type` (id in minecraft:dialog_type) selects
+            - `minecraft:notice`: compound `NoticeDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `action`? (default DEFAULT_ACTION): compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+            - `minecraft:server_links`: compound `ServerLinksDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `exit_action`?: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+              - `columns`? (default 2): `INT`
+              - `button_width`? (default 150): recursive `ServerLinksDialog.WIDTH_CODEC`: `INT`
+            - `minecraft:dialog_list`: compound `DialogListDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `dialogs`: set of minecraft:dialog (a tag or ids)
+              - `exit_action`?: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+              - `columns`? (default 2): `INT`
+              - `button_width`? (default 150): recursive `DialogListDialog.WIDTH_CODEC`: `INT`
+            - `minecraft:multi_action`: compound `MultiActionDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `actions`: list
+                - each: compound `ActionButton`
+                  - `label`: a text component
+                  - `tooltip`?: a text component
+                  - `width`? (default 150): `INT`
+                  - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                    - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                      - `url`: `STRING`
+                    - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                      - `command`: `STRING`
+                    - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                      - `command`: `STRING`
+                    - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                    - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                      - `page`: `INT`
+                    - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                      - `value`: `STRING`
+                    - `minecraft:custom`: compound `ClickEvent$Custom`
+                      - `id`: `IDENTIFIER`
+                      - `payload`?: an NBT tag
+                    - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                      - `template`: `STRING`
+                    - `minecraft:dynamic/custom`: compound `CustomAll`
+                      - `id`: `IDENTIFIER`
+                      - `additions`?: an NBT tag
+              - `exit_action`?: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+              - `columns`? (default 2): `INT`
+            - `minecraft:confirmation`: compound `ConfirmationDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `yes`: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+              - `no`: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+      - `change_page`: compound `ClickEvent$ChangePage`
+        - `page`: `INT`
+      - `copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+        - `value`: `STRING`
+      - `custom`: compound `ClickEvent$Custom`
+        - `id`: `IDENTIFIER`
+        - `payload`?: an NBT tag
+    - `hover_event`?: compound, `action` (enum `HoverEvent$Action` (var int, ids show_text/show_item/show_entity: SHOW_TEXT, SHOW_ITEM, SHOW_ENTITY)) selects
+      - `show_text`: compound `HoverEvent$ShowText`
+        - `value`: a text component
+      - `show_item`: compound `ItemStackTemplate`
+        - `id`: id in minecraft:item
+        - `count`? (default 1): `INT`
+        - `components`? (default EMPTY): an NBT tag
+      - `show_entity`: compound `HoverEvent$ShowEntity`
+        - `id`: id in minecraft:entity_type
+        - `uuid`: `UUID_LENIENT`
+        - `name`?: a text component
+    - `insertion`?: `STRING`
+    - `font`?: `IDENTIFIER`
+
+<a id="registries-minecraft-chicken_sound_variant"></a>
+### minecraft:chicken_sound_variant
+
+`net.minecraft.world.entity.animal.chicken.ChickenSoundVariant`.DIRECT_CODEC
+
+- `adult_sounds`: compound `ChickenSoundVariant$ChickenSoundSet`
+  - `ambient_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `hurt_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `death_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `step_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+- `baby_sounds`: compound `ChickenSoundVariant$ChickenSoundSet`
+  - `ambient_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `hurt_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `death_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `step_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+
+<a id="registries-minecraft-chicken_variant"></a>
+### minecraft:chicken_variant
+
+`net.minecraft.world.entity.animal.chicken.ChickenVariant`.NETWORK_CODEC
+
+- `model`? (default NORMAL): enum `ChickenVariant$ModelType` (var int, ids normal/cold: NORMAL, COLD)
+- `asset_id`: `IDENTIFIER`
+- `baby_asset_id`: `IDENTIFIER`
+
+<a id="registries-minecraft-cow_sound_variant"></a>
+### minecraft:cow_sound_variant
+
+`net.minecraft.world.entity.animal.cow.CowSoundVariant`.DIRECT_CODEC
+
+- `ambient_sound`: id in minecraft:sound_event or inline
+  - inline: compound `SoundEvent`
+    - `sound_id`: `IDENTIFIER`
+    - `range`?: `FLOAT`
+- `hurt_sound`: id in minecraft:sound_event or inline
+  - inline: compound `SoundEvent`
+    - `sound_id`: `IDENTIFIER`
+    - `range`?: `FLOAT`
+- `death_sound`: id in minecraft:sound_event or inline
+  - inline: compound `SoundEvent`
+    - `sound_id`: `IDENTIFIER`
+    - `range`?: `FLOAT`
+- `step_sound`: id in minecraft:sound_event or inline
+  - inline: compound `SoundEvent`
+    - `sound_id`: `IDENTIFIER`
+    - `range`?: `FLOAT`
+
+<a id="registries-minecraft-cow_variant"></a>
+### minecraft:cow_variant
+
+`net.minecraft.world.entity.animal.cow.CowVariant`.NETWORK_CODEC
+
+- `model`? (default NORMAL): enum `CowVariant$ModelType` (var int, ids normal/cold/warm: NORMAL, COLD, WARM)
+- `asset_id`: `IDENTIFIER`
+- `baby_asset_id`: `IDENTIFIER`
+
+<a id="registries-minecraft-damage_type"></a>
+### minecraft:damage_type
+
+`net.minecraft.world.damagesource.DamageType`.DIRECT_CODEC
+
+- `message_id`: `STRING`
+- `scaling`: enum `DamageScaling` (var int, ids never/when_caused_by_living_non_player/always: NEVER, WHEN_CAUSED_BY_LIVING_NON_PLAYER, ALWAYS)
+- `exhaustion`: `FLOAT`
+- `effects`? (default HURT): enum `DamageEffects` (var int, ids hurt/thorns/drowning/burning/poking/freezing: HURT, THORNS, DROWNING, BURNING, POKING, FREEZING)
+- `death_message_type`? (default DEFAULT): enum `DeathMessageType` (var int, ids default/fall_variants/intentional_game_design: DEFAULT, FALL_VARIANTS, INTENTIONAL_GAME_DESIGN)
+
+<a id="registries-minecraft-decorated_pot_pattern"></a>
+### minecraft:decorated_pot_pattern
+
+`net.minecraft.world.level.block.entity.DecoratedPotPattern`.CODEC
+
+- `asset_id`: `IDENTIFIER`
+
+<a id="registries-minecraft-dialog"></a>
+### minecraft:dialog
+
+`net.minecraft.server.dialog.Dialog`.DIRECT_CODEC
+
+- `type`: id in minecraft:dialog_type selects the case
+- `minecraft:notice`: compound `NoticeDialog`
+  - `title`: a text component
+  - `external_title`?: a text component
+  - `can_close_with_escape`? (default true): `BOOL`
+  - `pause`? (default true): `BOOL`
+  - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+  - `body`? (default []): list
+    - each: compound, `type` (id in minecraft:dialog_body_type) selects
+      - `minecraft:item`: compound `ItemBody`
+        - `item`: compound `ItemStackTemplate`
+          - `id`: id in minecraft:item
+          - `count`? (default 1): `INT`
+          - `components`? (default EMPTY): an NBT tag
+        - `description`?: compound `PlainMessage`
+          - `contents`: a text component
+          - `width`? (default 200): `INT`
+        - `show_decorations`? (default true): `BOOL`
+        - `show_tooltip`? (default true): `BOOL`
+        - `width`? (default 16): `INT`
+        - `height`? (default 16): `INT`
+      - `minecraft:plain_message`: compound `PlainMessage`
+        - `contents`: a text component
+        - `width`? (default 200): `INT`
+  - `inputs`? (default []): list
+    - each: compound `Input`
+      - `key`: `STRING`
+      - `minecraft:boolean`: compound `BooleanInput`
+        - `label`: a text component
+        - `initial`? (default false): `BOOL`
+        - `on_true`? (default true): `STRING`
+        - `on_false`? (default false): `STRING`
+      - `minecraft:number_range`: compound `NumberRangeInput`
+        - `width`? (default 200): `INT`
+        - `label`: a text component
+        - `label_format`? (default options.generic_value): `STRING`
+        - `start`: `FLOAT`
+        - `end`: `FLOAT`
+        - `initial`?: `FLOAT`
+        - `step`?: `FLOAT`
+      - `minecraft:single_option`: compound `SingleOptionInput`
+        - `width`? (default 200): `INT`
+        - `options`: list
+          - each: compound `SingleOptionInput$Entry`
+            - `id`: `STRING`
+            - `display`?: a text component
+            - `initial`? (default false): `BOOL`
+        - `label`: a text component
+        - `label_visible`? (default true): `BOOL`
+      - `minecraft:text`: compound `TextInput`
+        - `width`? (default 200): `INT`
+        - `label`: a text component
+        - `label_visible`? (default true): `BOOL`
+        - `initial`?: `STRING`
+        - `max_length`? (default 32): `INT`
+        - `multiline`?: compound `TextInput$MultilineOptions`
+          - `max_lines`?: `INT`
+          - `height`?: `INT`
+  - `action`? (default DEFAULT_ACTION): compound `ActionButton`
+    - `label`: a text component
+    - `tooltip`?: a text component
+    - `width`? (default 150): `INT`
+    - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+      - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+        - `url`: `STRING`
+      - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+        - `command`: `STRING`
+      - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+        - `command`: `STRING`
+      - `minecraft:show_dialog`: compound `ClickEvent$ShowDialog`
+        - `dialog`: id in minecraft:dialog or inline a `Dialog` again
+      - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+        - `page`: `INT`
+      - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+        - `value`: `STRING`
+      - `minecraft:custom`: compound `ClickEvent$Custom`
+        - `id`: `IDENTIFIER`
+        - `payload`?: an NBT tag
+      - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+        - `template`: `STRING`
+      - `minecraft:dynamic/custom`: compound `CustomAll`
+        - `id`: `IDENTIFIER`
+        - `additions`?: an NBT tag
+- `minecraft:server_links`: compound `ServerLinksDialog`
+  - `title`: a text component
+  - `external_title`?: a text component
+  - `can_close_with_escape`? (default true): `BOOL`
+  - `pause`? (default true): `BOOL`
+  - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+  - `body`? (default []): list
+    - each: compound, `type` (id in minecraft:dialog_body_type) selects
+      - `minecraft:item`: compound `ItemBody`
+        - `item`: compound `ItemStackTemplate`
+          - `id`: id in minecraft:item
+          - `count`? (default 1): `INT`
+          - `components`? (default EMPTY): an NBT tag
+        - `description`?: compound `PlainMessage`
+          - `contents`: a text component
+          - `width`? (default 200): `INT`
+        - `show_decorations`? (default true): `BOOL`
+        - `show_tooltip`? (default true): `BOOL`
+        - `width`? (default 16): `INT`
+        - `height`? (default 16): `INT`
+      - `minecraft:plain_message`: compound `PlainMessage`
+        - `contents`: a text component
+        - `width`? (default 200): `INT`
+  - `inputs`? (default []): list
+    - each: compound `Input`
+      - `key`: `STRING`
+      - `minecraft:boolean`: compound `BooleanInput`
+        - `label`: a text component
+        - `initial`? (default false): `BOOL`
+        - `on_true`? (default true): `STRING`
+        - `on_false`? (default false): `STRING`
+      - `minecraft:number_range`: compound `NumberRangeInput`
+        - `width`? (default 200): `INT`
+        - `label`: a text component
+        - `label_format`? (default options.generic_value): `STRING`
+        - `start`: `FLOAT`
+        - `end`: `FLOAT`
+        - `initial`?: `FLOAT`
+        - `step`?: `FLOAT`
+      - `minecraft:single_option`: compound `SingleOptionInput`
+        - `width`? (default 200): `INT`
+        - `options`: list
+          - each: compound `SingleOptionInput$Entry`
+            - `id`: `STRING`
+            - `display`?: a text component
+            - `initial`? (default false): `BOOL`
+        - `label`: a text component
+        - `label_visible`? (default true): `BOOL`
+      - `minecraft:text`: compound `TextInput`
+        - `width`? (default 200): `INT`
+        - `label`: a text component
+        - `label_visible`? (default true): `BOOL`
+        - `initial`?: `STRING`
+        - `max_length`? (default 32): `INT`
+        - `multiline`?: compound `TextInput$MultilineOptions`
+          - `max_lines`?: `INT`
+          - `height`?: `INT`
+  - `exit_action`?: compound `ActionButton`
+    - `label`: a text component
+    - `tooltip`?: a text component
+    - `width`? (default 150): `INT`
+    - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+      - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+        - `url`: `STRING`
+      - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+        - `command`: `STRING`
+      - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+        - `command`: `STRING`
+      - `minecraft:show_dialog`: compound `ClickEvent$ShowDialog`
+        - `dialog`: id in minecraft:dialog or inline a `Dialog` again
+      - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+        - `page`: `INT`
+      - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+        - `value`: `STRING`
+      - `minecraft:custom`: compound `ClickEvent$Custom`
+        - `id`: `IDENTIFIER`
+        - `payload`?: an NBT tag
+      - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+        - `template`: `STRING`
+      - `minecraft:dynamic/custom`: compound `CustomAll`
+        - `id`: `IDENTIFIER`
+        - `additions`?: an NBT tag
+  - `columns`? (default 2): `INT`
+  - `button_width`? (default 150): recursive `ServerLinksDialog.WIDTH_CODEC`: `INT`
+- `minecraft:dialog_list`: compound `DialogListDialog`
+  - `title`: a text component
+  - `external_title`?: a text component
+  - `can_close_with_escape`? (default true): `BOOL`
+  - `pause`? (default true): `BOOL`
+  - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+  - `body`? (default []): list
+    - each: compound, `type` (id in minecraft:dialog_body_type) selects
+      - `minecraft:item`: compound `ItemBody`
+        - `item`: compound `ItemStackTemplate`
+          - `id`: id in minecraft:item
+          - `count`? (default 1): `INT`
+          - `components`? (default EMPTY): an NBT tag
+        - `description`?: compound `PlainMessage`
+          - `contents`: a text component
+          - `width`? (default 200): `INT`
+        - `show_decorations`? (default true): `BOOL`
+        - `show_tooltip`? (default true): `BOOL`
+        - `width`? (default 16): `INT`
+        - `height`? (default 16): `INT`
+      - `minecraft:plain_message`: compound `PlainMessage`
+        - `contents`: a text component
+        - `width`? (default 200): `INT`
+  - `inputs`? (default []): list
+    - each: compound `Input`
+      - `key`: `STRING`
+      - `minecraft:boolean`: compound `BooleanInput`
+        - `label`: a text component
+        - `initial`? (default false): `BOOL`
+        - `on_true`? (default true): `STRING`
+        - `on_false`? (default false): `STRING`
+      - `minecraft:number_range`: compound `NumberRangeInput`
+        - `width`? (default 200): `INT`
+        - `label`: a text component
+        - `label_format`? (default options.generic_value): `STRING`
+        - `start`: `FLOAT`
+        - `end`: `FLOAT`
+        - `initial`?: `FLOAT`
+        - `step`?: `FLOAT`
+      - `minecraft:single_option`: compound `SingleOptionInput`
+        - `width`? (default 200): `INT`
+        - `options`: list
+          - each: compound `SingleOptionInput$Entry`
+            - `id`: `STRING`
+            - `display`?: a text component
+            - `initial`? (default false): `BOOL`
+        - `label`: a text component
+        - `label_visible`? (default true): `BOOL`
+      - `minecraft:text`: compound `TextInput`
+        - `width`? (default 200): `INT`
+        - `label`: a text component
+        - `label_visible`? (default true): `BOOL`
+        - `initial`?: `STRING`
+        - `max_length`? (default 32): `INT`
+        - `multiline`?: compound `TextInput$MultilineOptions`
+          - `max_lines`?: `INT`
+          - `height`?: `INT`
+  - `dialogs`: set of minecraft:dialog (a tag or ids)
+  - `exit_action`?: compound `ActionButton`
+    - `label`: a text component
+    - `tooltip`?: a text component
+    - `width`? (default 150): `INT`
+    - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+      - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+        - `url`: `STRING`
+      - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+        - `command`: `STRING`
+      - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+        - `command`: `STRING`
+      - `minecraft:show_dialog`: compound `ClickEvent$ShowDialog`
+        - `dialog`: id in minecraft:dialog or inline a `Dialog` again
+      - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+        - `page`: `INT`
+      - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+        - `value`: `STRING`
+      - `minecraft:custom`: compound `ClickEvent$Custom`
+        - `id`: `IDENTIFIER`
+        - `payload`?: an NBT tag
+      - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+        - `template`: `STRING`
+      - `minecraft:dynamic/custom`: compound `CustomAll`
+        - `id`: `IDENTIFIER`
+        - `additions`?: an NBT tag
+  - `columns`? (default 2): `INT`
+  - `button_width`? (default 150): recursive `DialogListDialog.WIDTH_CODEC`: `INT`
+- `minecraft:multi_action`: compound `MultiActionDialog`
+  - `title`: a text component
+  - `external_title`?: a text component
+  - `can_close_with_escape`? (default true): `BOOL`
+  - `pause`? (default true): `BOOL`
+  - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+  - `body`? (default []): list
+    - each: compound, `type` (id in minecraft:dialog_body_type) selects
+      - `minecraft:item`: compound `ItemBody`
+        - `item`: compound `ItemStackTemplate`
+          - `id`: id in minecraft:item
+          - `count`? (default 1): `INT`
+          - `components`? (default EMPTY): an NBT tag
+        - `description`?: compound `PlainMessage`
+          - `contents`: a text component
+          - `width`? (default 200): `INT`
+        - `show_decorations`? (default true): `BOOL`
+        - `show_tooltip`? (default true): `BOOL`
+        - `width`? (default 16): `INT`
+        - `height`? (default 16): `INT`
+      - `minecraft:plain_message`: compound `PlainMessage`
+        - `contents`: a text component
+        - `width`? (default 200): `INT`
+  - `inputs`? (default []): list
+    - each: compound `Input`
+      - `key`: `STRING`
+      - `minecraft:boolean`: compound `BooleanInput`
+        - `label`: a text component
+        - `initial`? (default false): `BOOL`
+        - `on_true`? (default true): `STRING`
+        - `on_false`? (default false): `STRING`
+      - `minecraft:number_range`: compound `NumberRangeInput`
+        - `width`? (default 200): `INT`
+        - `label`: a text component
+        - `label_format`? (default options.generic_value): `STRING`
+        - `start`: `FLOAT`
+        - `end`: `FLOAT`
+        - `initial`?: `FLOAT`
+        - `step`?: `FLOAT`
+      - `minecraft:single_option`: compound `SingleOptionInput`
+        - `width`? (default 200): `INT`
+        - `options`: list
+          - each: compound `SingleOptionInput$Entry`
+            - `id`: `STRING`
+            - `display`?: a text component
+            - `initial`? (default false): `BOOL`
+        - `label`: a text component
+        - `label_visible`? (default true): `BOOL`
+      - `minecraft:text`: compound `TextInput`
+        - `width`? (default 200): `INT`
+        - `label`: a text component
+        - `label_visible`? (default true): `BOOL`
+        - `initial`?: `STRING`
+        - `max_length`? (default 32): `INT`
+        - `multiline`?: compound `TextInput$MultilineOptions`
+          - `max_lines`?: `INT`
+          - `height`?: `INT`
+  - `actions`: list
+    - each: compound `ActionButton`
+      - `label`: a text component
+      - `tooltip`?: a text component
+      - `width`? (default 150): `INT`
+      - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+        - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+          - `url`: `STRING`
+        - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+          - `command`: `STRING`
+        - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+          - `command`: `STRING`
+        - `minecraft:show_dialog`: compound `ClickEvent$ShowDialog`
+          - `dialog`: id in minecraft:dialog or inline a `Dialog` again
+        - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+          - `page`: `INT`
+        - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+          - `value`: `STRING`
+        - `minecraft:custom`: compound `ClickEvent$Custom`
+          - `id`: `IDENTIFIER`
+          - `payload`?: an NBT tag
+        - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+          - `template`: `STRING`
+        - `minecraft:dynamic/custom`: compound `CustomAll`
+          - `id`: `IDENTIFIER`
+          - `additions`?: an NBT tag
+  - `exit_action`?: compound `ActionButton`
+    - `label`: a text component
+    - `tooltip`?: a text component
+    - `width`? (default 150): `INT`
+    - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+      - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+        - `url`: `STRING`
+      - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+        - `command`: `STRING`
+      - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+        - `command`: `STRING`
+      - `minecraft:show_dialog`: compound `ClickEvent$ShowDialog`
+        - `dialog`: id in minecraft:dialog or inline a `Dialog` again
+      - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+        - `page`: `INT`
+      - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+        - `value`: `STRING`
+      - `minecraft:custom`: compound `ClickEvent$Custom`
+        - `id`: `IDENTIFIER`
+        - `payload`?: an NBT tag
+      - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+        - `template`: `STRING`
+      - `minecraft:dynamic/custom`: compound `CustomAll`
+        - `id`: `IDENTIFIER`
+        - `additions`?: an NBT tag
+  - `columns`? (default 2): `INT`
+- `minecraft:confirmation`: compound `ConfirmationDialog`
+  - `title`: a text component
+  - `external_title`?: a text component
+  - `can_close_with_escape`? (default true): `BOOL`
+  - `pause`? (default true): `BOOL`
+  - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+  - `body`? (default []): list
+    - each: compound, `type` (id in minecraft:dialog_body_type) selects
+      - `minecraft:item`: compound `ItemBody`
+        - `item`: compound `ItemStackTemplate`
+          - `id`: id in minecraft:item
+          - `count`? (default 1): `INT`
+          - `components`? (default EMPTY): an NBT tag
+        - `description`?: compound `PlainMessage`
+          - `contents`: a text component
+          - `width`? (default 200): `INT`
+        - `show_decorations`? (default true): `BOOL`
+        - `show_tooltip`? (default true): `BOOL`
+        - `width`? (default 16): `INT`
+        - `height`? (default 16): `INT`
+      - `minecraft:plain_message`: compound `PlainMessage`
+        - `contents`: a text component
+        - `width`? (default 200): `INT`
+  - `inputs`? (default []): list
+    - each: compound `Input`
+      - `key`: `STRING`
+      - `minecraft:boolean`: compound `BooleanInput`
+        - `label`: a text component
+        - `initial`? (default false): `BOOL`
+        - `on_true`? (default true): `STRING`
+        - `on_false`? (default false): `STRING`
+      - `minecraft:number_range`: compound `NumberRangeInput`
+        - `width`? (default 200): `INT`
+        - `label`: a text component
+        - `label_format`? (default options.generic_value): `STRING`
+        - `start`: `FLOAT`
+        - `end`: `FLOAT`
+        - `initial`?: `FLOAT`
+        - `step`?: `FLOAT`
+      - `minecraft:single_option`: compound `SingleOptionInput`
+        - `width`? (default 200): `INT`
+        - `options`: list
+          - each: compound `SingleOptionInput$Entry`
+            - `id`: `STRING`
+            - `display`?: a text component
+            - `initial`? (default false): `BOOL`
+        - `label`: a text component
+        - `label_visible`? (default true): `BOOL`
+      - `minecraft:text`: compound `TextInput`
+        - `width`? (default 200): `INT`
+        - `label`: a text component
+        - `label_visible`? (default true): `BOOL`
+        - `initial`?: `STRING`
+        - `max_length`? (default 32): `INT`
+        - `multiline`?: compound `TextInput$MultilineOptions`
+          - `max_lines`?: `INT`
+          - `height`?: `INT`
+  - `yes`: compound `ActionButton`
+    - `label`: a text component
+    - `tooltip`?: a text component
+    - `width`? (default 150): `INT`
+    - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+      - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+        - `url`: `STRING`
+      - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+        - `command`: `STRING`
+      - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+        - `command`: `STRING`
+      - `minecraft:show_dialog`: compound `ClickEvent$ShowDialog`
+        - `dialog`: id in minecraft:dialog or inline a `Dialog` again
+      - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+        - `page`: `INT`
+      - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+        - `value`: `STRING`
+      - `minecraft:custom`: compound `ClickEvent$Custom`
+        - `id`: `IDENTIFIER`
+        - `payload`?: an NBT tag
+      - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+        - `template`: `STRING`
+      - `minecraft:dynamic/custom`: compound `CustomAll`
+        - `id`: `IDENTIFIER`
+        - `additions`?: an NBT tag
+  - `no`: compound `ActionButton`
+    - `label`: a text component
+    - `tooltip`?: a text component
+    - `width`? (default 150): `INT`
+    - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+      - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+        - `url`: `STRING`
+      - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+        - `command`: `STRING`
+      - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+        - `command`: `STRING`
+      - `minecraft:show_dialog`: compound `ClickEvent$ShowDialog`
+        - `dialog`: id in minecraft:dialog or inline a `Dialog` again
+      - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+        - `page`: `INT`
+      - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+        - `value`: `STRING`
+      - `minecraft:custom`: compound `ClickEvent$Custom`
+        - `id`: `IDENTIFIER`
+        - `payload`?: an NBT tag
+      - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+        - `template`: `STRING`
+      - `minecraft:dynamic/custom`: compound `CustomAll`
+        - `id`: `IDENTIFIER`
+        - `additions`?: an NBT tag
+
+<a id="registries-minecraft-dimension_type"></a>
+### minecraft:dimension_type
+
+`net.minecraft.world.level.dimension.DimensionType`.NETWORK_CODEC
+
+- `has_fixed_time`? (default false): `BOOL`
+- `has_skylight`: `BOOL`
+- `has_ceiling`: `BOOL`
+- `has_ender_dragon_fight`: `BOOL`
+- `coordinate_scale`: `DOUBLE`
+- `min_y`: `INT`
+- `height`: `INT`
+- `logical_height`: `INT`
+- `infiniburn`: set of minecraft:block (a tag or ids)
+- `ambient_light`: `FLOAT`
+- `monster_spawn_light_level`: one of
+  - either: `INT`
+  - or: compound, `type` (id in minecraft:int_provider_type) selects
+    - `minecraft:constant`: compound `ConstantInt`
+      - `value`: `INT`
+    - `minecraft:uniform`: compound `UniformInt`
+      - `min_inclusive`: `INT`
+      - `max_inclusive`: `INT`
+    - `minecraft:biased_to_bottom`: compound `BiasedToBottomInt`
+      - `min_inclusive`: `INT`
+      - `max_inclusive`: `INT`
+    - `minecraft:very_biased_to_bottom`: compound `VeryBiasedToBottomInt`
+      - `min_inclusive`: `INT`
+      - `max_inclusive`: `INT`
+    - `minecraft:clamped`: compound `ClampedInt`
+      - `source`: either `INT` or a `IntProviders` again
+      - `min_inclusive`: `INT`
+      - `max_inclusive`: `INT`
+    - `minecraft:weighted_list`: compound `WeightedListInt`
+      - `distribution`: list
+        - each: compound `Weighted`
+          - `data`: either `INT` or a `IntProviders` again
+          - `weight`: `INT`
+    - `minecraft:clamped_normal`: compound `ClampedNormalInt`
+      - `mean`: `FLOAT`
+      - `deviation`: `FLOAT`
+      - `min_inclusive`: `INT`
+      - `max_inclusive`: `INT`
+    - `minecraft:trapezoid`: compound `TrapezoidInt`
+      - `min`: `INT`
+      - `max`: `INT`
+      - `plateau`: `INT`
+- `monster_spawn_block_light_limit`: `INT`
+- `skybox`? (default OVERWORLD): enum `DimensionType$Skybox` (var int, ids none/overworld/end: NONE, OVERWORLD, END)
+- `cardinal_light`? (default DEFAULT): enum `CardinalLighting$Type` (var int, ids default/nether: DEFAULT, NETHER)
+- `attributes`? (default EMPTY): map of id in minecraft:environment_attribute to an NBT tag
+- `timelines`? (default []): set of minecraft:timeline (a tag or ids)
+- `default_clock`?: id in minecraft:world_clock
+
+<a id="registries-minecraft-enchantment"></a>
+### minecraft:enchantment
+
+`net.minecraft.world.item.enchantment.Enchantment`.DIRECT_CODEC
+
+- `description`: a text component
+- `supported_items`: set of minecraft:item (a tag or ids)
+- `primary_items`?: set of minecraft:item (a tag or ids)
+- `weight`: `INT`
+- `max_level`: `INT`
+- `min_cost`: compound `Enchantment$Cost`
+  - `base`: `INT`
+  - `per_level_above_first`: `INT`
+- `max_cost`: compound `Enchantment$Cost`
+  - `base`: `INT`
+  - `per_level_above_first`: `INT`
+- `anvil_cost`: `INT`
+- `slots`: list of enum `EquipmentSlotGroup` (var int, ids any/mainhand/offhand/hand/feet/legs/chest/head/armor/body/saddle: ANY, MAINHAND, OFFHAND, HAND, FEET, LEGS, CHEST, HEAD, ARMOR, BODY, SADDLE)
+- `exclusive_set`? (default []): set of minecraft:enchantment (a tag or ids)
+- `effects`? (default EMPTY): map of id in minecraft:enchantment_effect_component_type to an NBT tag
+
+<a id="registries-minecraft-frog_variant"></a>
+### minecraft:frog_variant
+
+`net.minecraft.world.entity.animal.frog.FrogVariant`.NETWORK_CODEC
+
+- `asset_id`: `IDENTIFIER`
+
+<a id="registries-minecraft-instrument"></a>
+### minecraft:instrument
+
+`net.minecraft.world.item.Instrument`.DIRECT_CODEC
+
+- `sound_event`: id in minecraft:sound_event or inline
+  - inline: compound `SoundEvent`
+    - `sound_id`: `IDENTIFIER`
+    - `range`?: `FLOAT`
+- `use_duration`: `FLOAT`
+- `range`: `FLOAT`
+- `durability_damage`? (default 0): `INT`
+- `description`: a text component
+
+<a id="registries-minecraft-jukebox_song"></a>
+### minecraft:jukebox_song
+
+`net.minecraft.world.item.JukeboxSong`.DIRECT_CODEC
+
+- `sound_event`: id in minecraft:sound_event or inline
+  - inline: compound `SoundEvent`
+    - `sound_id`: `IDENTIFIER`
+    - `range`?: `FLOAT`
+- `description`: a text component
+- `length_in_seconds`: `FLOAT`
+- `comparator_output`: `INT`
+
+<a id="registries-minecraft-painting_variant"></a>
+### minecraft:painting_variant
+
+`net.minecraft.world.entity.decoration.painting.PaintingVariant`.DIRECT_CODEC
+
+- `width`: `INT`
+- `height`: `INT`
+- `asset_id`: `IDENTIFIER`
+- `title`?: a text component
+- `author`?: a text component
+
+<a id="registries-minecraft-pig_sound_variant"></a>
+### minecraft:pig_sound_variant
+
+`net.minecraft.world.entity.animal.pig.PigSoundVariant`.NETWORK_CODEC
+
+- `adult_sounds`: compound `PigSoundVariant$PigSoundSet`
+  - `ambient_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `hurt_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `death_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `step_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `eat_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+- `baby_sounds`: compound `PigSoundVariant$PigSoundSet`
+  - `ambient_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `hurt_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `death_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `step_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `eat_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+
+<a id="registries-minecraft-pig_variant"></a>
+### minecraft:pig_variant
+
+`net.minecraft.world.entity.animal.pig.PigVariant`.NETWORK_CODEC
+
+- `model`? (default NORMAL): enum `PigVariant$ModelType` (var int, ids normal/cold: NORMAL, COLD)
+- `asset_id`: `IDENTIFIER`
+- `baby_asset_id`: `IDENTIFIER`
+
+<a id="registries-minecraft-sulfur_cube_archetype"></a>
+### minecraft:sulfur_cube_archetype
+
+`net.minecraft.world.entity.SulfurCubeArchetype`.DIRECT_CODEC
+
+- `items`: set of minecraft:item (a tag or ids)
+- `attribute_modifiers`: list
+  - each: compound `SulfurCubeArchetype$AttributeEntry`
+    - `attribute`: id in minecraft:attribute
+    - `id`: `IDENTIFIER`
+    - `amount`: `DOUBLE`
+    - `operation`: enum `AttributeModifier$Operation` (var int, ids add_value/add_multiplied_base/add_multiplied_total: ADD_VALUE, ADD_MULTIPLIED_BASE, ADD_MULTIPLIED_TOTAL)
+- `buoyant`? (default false): `BOOL`
+- `explosion`?: compound `SulfurCubeArchetype$ExplosionData`
+  - `power`: `INT`
+  - `causes_fire`: `BOOL`
+  - `fuse`: `INT`
+- `contact_damage`?: compound `SulfurCubeArchetype$ContactDamage`
+  - `damage_type`: id in minecraft:damage_type
+  - `amount`: one of
+    - either: `FLOAT`
+    - or: compound, `type` (id in minecraft:float_provider_type) selects
+      - `minecraft:constant`: compound `ConstantFloat`
+        - `value`: `FLOAT`
+      - `minecraft:uniform`: compound `UniformFloat`
+        - `min_inclusive`: `FLOAT`
+        - `max_exclusive`: `FLOAT`
+      - `minecraft:clamped_normal`: compound `ClampedNormalFloat`
+        - `mean`: `FLOAT`
+        - `deviation`: `FLOAT`
+        - `min`: `FLOAT`
+        - `max`: `FLOAT`
+      - `minecraft:trapezoid`: compound `TrapezoidFloat`
+        - `min`: `FLOAT`
+        - `max`: `FLOAT`
+        - `plateau`: `FLOAT`
+  - `attribute_to_source`: `BOOL`
+- `knockback_modifiers`: compound `SulfurCubeArchetype$KnockbackModifiers`
+  - `horizontal_power`: `FLOAT`
+  - `vertical_power`: `FLOAT`
+- `sound_settings`: compound `SulfurCubeArchetype$SoundSettings`
+  - `hit_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `push_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `push_sound_impulse_threshold`: `FLOAT`
+  - `push_sound_cooldown`: `FLOAT`
+
+<a id="registries-minecraft-test_environment"></a>
+### minecraft:test_environment
+
+`net.minecraft.gametest.framework.TestEnvironmentDefinition`.DIRECT_CODEC
+
+- `type`: id in minecraft:test_environment_definition_type selects the case
+- `minecraft:all_of`: compound `TestEnvironmentDefinition$AllOf`
+  - `definitions`: list of id in minecraft:test_environment or inline a `TestEnvironmentDefinition` again
+- `minecraft:clock_time`: compound `TestEnvironmentDefinition$ClockTime`
+  - `clock`: id in minecraft:world_clock
+  - `time`: `INT`
+- `minecraft:difficulty`: compound `TestEnvironmentDefinition$SetDifficulty`
+  - `difficulty`: enum `Difficulty` (var int, ids peaceful/easy/normal/hard: PEACEFUL, EASY, NORMAL, HARD)
+- `minecraft:function`: compound `TestEnvironmentDefinition$Functions`
+  - `setup`?: `IDENTIFIER`
+  - `teardown`?: `IDENTIFIER`
+- `minecraft:game_rules`: compound `TestEnvironmentDefinition$SetGameRules`
+  - `rules`: map of id in minecraft:game_rule to an NBT tag
+- `minecraft:timeline_attributes`: compound `TestEnvironmentDefinition$Timelines`
+  - `timelines`: list of id in minecraft:timeline
+- `minecraft:weather`: compound `TestEnvironmentDefinition$Weather`
+  - `weather`: enum `TestEnvironmentDefinition$Weather$Type` (var int, ids clear/rain/thunder: CLEAR, RAIN, THUNDER)
+
+<a id="registries-minecraft-test_instance"></a>
+### minecraft:test_instance
+
+`net.minecraft.gametest.framework.GameTestInstance`.DIRECT_CODEC
+
+- `type`: id in minecraft:test_instance_type selects the case
+- `minecraft:block_based`: compound `BlockBasedTestInstance`
+  - `environment`: recursive `TestEnvironmentDefinition`
+    - the codec: id in minecraft:test_environment or inline
+      - inline: compound, `type` (id in minecraft:test_environment_definition_type) selects
+        - `minecraft:all_of`: compound `TestEnvironmentDefinition$AllOf`
+          - `definitions`: list of a `TestEnvironmentDefinition` again
+        - `minecraft:clock_time`: compound `TestEnvironmentDefinition$ClockTime`
+          - `clock`: id in minecraft:world_clock
+          - `time`: `INT`
+        - `minecraft:difficulty`: compound `TestEnvironmentDefinition$SetDifficulty`
+          - `difficulty`: enum `Difficulty` (var int, ids peaceful/easy/normal/hard: PEACEFUL, EASY, NORMAL, HARD)
+        - `minecraft:function`: compound `TestEnvironmentDefinition$Functions`
+          - `setup`?: `IDENTIFIER`
+          - `teardown`?: `IDENTIFIER`
+        - `minecraft:game_rules`: compound `TestEnvironmentDefinition$SetGameRules`
+          - `rules`: map of id in minecraft:game_rule to an NBT tag
+        - `minecraft:timeline_attributes`: compound `TestEnvironmentDefinition$Timelines`
+          - `timelines`: list of id in minecraft:timeline
+        - `minecraft:weather`: compound `TestEnvironmentDefinition$Weather`
+          - `weather`: enum `TestEnvironmentDefinition$Weather$Type` (var int, ids clear/rain/thunder: CLEAR, RAIN, THUNDER)
+  - `dimension`?: resource key in minecraft:dimension
+  - `structure`: `IDENTIFIER`
+  - `max_ticks`: `INT`
+  - `setup_ticks`? (default 0): `INT`
+  - `required`? (default true): `BOOL`
+  - `rotation`? (default NONE): enum `Rotation` (var int, ids none/clockwise_90/180/counterclockwise_90: NONE, CLOCKWISE_90, CLOCKWISE_180, COUNTERCLOCKWISE_90)
+  - `manual_only`? (default false): `BOOL`
+  - `max_attempts`? (default 1): `INT`
+  - `required_successes`? (default 1): `INT`
+  - `sky_access`? (default false): `BOOL`
+  - `padding`? (default 0): `INT`
+- `minecraft:function`: compound `FunctionGameTestInstance`
+  - `function`: resource key in minecraft:test_function
+  - `environment`: recursive `TestEnvironmentDefinition`
+    - the codec `TestEnvironmentDefinition`, spelled out above
+  - `dimension`?: resource key in minecraft:dimension
+  - `structure`: `IDENTIFIER`
+  - `max_ticks`: `INT`
+  - `setup_ticks`? (default 0): `INT`
+  - `required`? (default true): `BOOL`
+  - `rotation`? (default NONE): enum `Rotation` (var int, ids none/clockwise_90/180/counterclockwise_90: NONE, CLOCKWISE_90, CLOCKWISE_180, COUNTERCLOCKWISE_90)
+  - `manual_only`? (default false): `BOOL`
+  - `max_attempts`? (default 1): `INT`
+  - `required_successes`? (default 1): `INT`
+  - `sky_access`? (default false): `BOOL`
+  - `padding`? (default 0): `INT`
+
+<a id="registries-minecraft-timeline"></a>
+### minecraft:timeline
+
+`net.minecraft.world.timeline.Timeline`.NETWORK_CODEC
+
+- `clock`: id in minecraft:world_clock
+- `period_ticks`?: `INT`
+- `tracks`? (default {}): map of id in minecraft:environment_attribute to an NBT tag
+- `time_markers`? (default {}): compound of
+  - keys: resource key in minecraft:root_id
+  - values: one of
+    - either: `INT`
+    - or: compound `Timeline$TimeMarkerInfo`
+      - `ticks`: `INT`
+      - `show_in_commands`? (default false): `BOOL`
+
+<a id="registries-minecraft-trim_material"></a>
+### minecraft:trim_material
+
+`net.minecraft.world.item.equipment.trim.TrimMaterial`.DIRECT_CODEC
+
+- `palette_id`: `IDENTIFIER`
+- `description`: a text component
+
+<a id="registries-minecraft-trim_pattern"></a>
+### minecraft:trim_pattern
+
+`net.minecraft.world.item.equipment.trim.TrimPattern`.DIRECT_CODEC
+
+- `asset_id`: `IDENTIFIER`
+- `description`: a text component
+- `decal`? (default false): `BOOL`
+
+<a id="registries-minecraft-wolf_sound_variant"></a>
+### minecraft:wolf_sound_variant
+
+`net.minecraft.world.entity.animal.wolf.WolfSoundVariant`.NETWORK_CODEC
+
+- `adult_sounds`: compound `WolfSoundVariant$WolfSoundSet`
+  - `ambient_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `death_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `growl_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `hurt_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `pant_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `whine_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `step_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+- `baby_sounds`: compound `WolfSoundVariant$WolfSoundSet`
+  - `ambient_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `death_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `growl_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `hurt_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `pant_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `whine_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+  - `step_sound`: id in minecraft:sound_event or inline
+    - inline: compound `SoundEvent`
+      - `sound_id`: `IDENTIFIER`
+      - `range`?: `FLOAT`
+
+<a id="registries-minecraft-wolf_variant"></a>
+### minecraft:wolf_variant
+
+`net.minecraft.world.entity.animal.wolf.WolfVariant`.NETWORK_CODEC
+
+- `assets`: compound `WolfVariant$AssetInfo`
+  - `wild`: `IDENTIFIER`
+  - `tame`: `IDENTIFIER`
+  - `angry`: `IDENTIFIER`
+- `baby_assets`: compound `WolfVariant$AssetInfo`
+  - `wild`: `IDENTIFIER`
+  - `tame`: `IDENTIFIER`
+  - `angry`: `IDENTIFIER`
+
+<a id="registries-minecraft-world_clock"></a>
+### minecraft:world_clock
+
+`net.minecraft.world.clock.WorldClock`.DIRECT_CODEC
+
+- nothing
+
+<a id="registries-minecraft-worldgen-biome"></a>
+### minecraft:worldgen/biome
+
+`net.minecraft.world.level.biome.Biome`.NETWORK_CODEC
+
+- `has_precipitation`: `BOOL`
+- `temperature`: `FLOAT`
+- `temperature_modifier`? (default NONE): enum `Biome$TemperatureModifier` (var int, ids none/frozen: NONE, FROZEN)
+- `downfall`: `FLOAT`
+- `attributes`? (default EMPTY): map of id in minecraft:environment_attribute to an NBT tag
+- `effects`: compound `BiomeSpecialEffects`
+  - `water_color`: `RGB_COLOR`
+  - `foliage_color`?: `RGB_COLOR`
+  - `dry_foliage_color`?: `RGB_COLOR`
+  - `grass_color`?: `RGB_COLOR`
+  - `grass_color_modifier`? (default NONE): enum `BiomeSpecialEffects$GrassColorModifier` (var int, ids none/dark_forest/swamp: NONE, DARK_FOREST, SWAMP)
+
+<a id="registries-minecraft-worldgen-block_state_provider"></a>
+### minecraft:worldgen/block_state_provider
+
+`net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider`.DIRECT_CODEC
+
+- either: compound `BlockState`
+  - `id`: id in minecraft:block
+  - `properties`?: map of `STRING` to `STRING`
+- or: compound, `type` (id in minecraft:worldgen/block_state_provider_type) selects
+  - `minecraft:copy_properties`: compound `CopyPropertiesProvider`
+    - `source`: recursive `BlockStateProvider`
+      - the codec: id in minecraft:worldgen/block_state_provider or inline
+        - inline: one of
+          - either: compound `BlockState`
+            - `id`: id in minecraft:block
+            - `properties`?: map of `STRING` to `STRING`
+          - or: compound, `type` (id in minecraft:worldgen/block_state_provider_type) selects
+            - `minecraft:copy_properties`: compound `CopyPropertiesProvider`
+              - `source`: a `BlockStateProvider` again
+            - `minecraft:dual_noise`: compound `DualNoiseProvider`
+              - `variety`: either `INT` or list of `INT`
+              - `slow_noise`: compound `NormalNoise$Parameters`
+                - `base_amplitude`? (default 1.0): `DOUBLE`
+                - `base_octave`: `INT`
+                - `octave_count`? (default 1): `INT`
+                - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+                - `amplitude_modifiers`? (default of): list of `DOUBLE`
+              - `slow_scale`: `FLOAT`
+              - `seed`: `LONG`
+              - `noise`: compound `NormalNoise$Parameters`
+                - `base_amplitude`? (default 1.0): `DOUBLE`
+                - `base_octave`: `INT`
+                - `octave_count`? (default 1): `INT`
+                - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+                - `amplitude_modifiers`? (default of): list of `DOUBLE`
+              - `scale`: `FLOAT`
+              - `states`: list
+                - each: one of
+                  - either: id in minecraft:block
+                  - or: compound `BlockState`
+                    - `id`: id in minecraft:block
+                    - `properties`?: map of `STRING` to `STRING`
+            - `minecraft:noise`: compound `NoiseProvider`
+              - `seed`: `LONG`
+              - `noise`: compound `NormalNoise$Parameters`
+                - `base_amplitude`? (default 1.0): `DOUBLE`
+                - `base_octave`: `INT`
+                - `octave_count`? (default 1): `INT`
+                - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+                - `amplitude_modifiers`? (default of): list of `DOUBLE`
+              - `scale`: `FLOAT`
+              - `states`: list
+                - each: one of
+                  - either: id in minecraft:block
+                  - or: compound `BlockState`
+                    - `id`: id in minecraft:block
+                    - `properties`?: map of `STRING` to `STRING`
+            - `minecraft:noise_threshold`: compound `NoiseThresholdProvider`
+              - `seed`: `LONG`
+              - `noise`: compound `NormalNoise$Parameters`
+                - `base_amplitude`? (default 1.0): `DOUBLE`
+                - `base_octave`: `INT`
+                - `octave_count`? (default 1): `INT`
+                - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+                - `amplitude_modifiers`? (default of): list of `DOUBLE`
+              - `scale`: `FLOAT`
+              - `threshold`: `FLOAT`
+              - `high_chance`: `FLOAT`
+              - `default_state`: one of
+                - either: id in minecraft:block
+                - or: compound `BlockState`
+                  - `id`: id in minecraft:block
+                  - `properties`?: map of `STRING` to `STRING`
+              - `low_states`: list
+                - each: one of
+                  - either: id in minecraft:block
+                  - or: compound `BlockState`
+                    - `id`: id in minecraft:block
+                    - `properties`?: map of `STRING` to `STRING`
+              - `high_states`: list
+                - each: one of
+                  - either: id in minecraft:block
+                  - or: compound `BlockState`
+                    - `id`: id in minecraft:block
+                    - `properties`?: map of `STRING` to `STRING`
+            - `minecraft:random_block`: compound `RandomBlockProvider`
+              - `blocks`: set of minecraft:block (a tag or ids)
+            - `minecraft:randomized_int`: compound `RandomizedIntStateProvider`
+              - `source`: a `BlockStateProvider` again
+              - `property`: `STRING`
+              - `values`: one of
+                - either: `INT`
+                - or: compound, `type` (id in minecraft:int_provider_type) selects
+                  - `minecraft:constant`: compound `ConstantInt`
+                    - `value`: `INT`
+                  - `minecraft:uniform`: compound `UniformInt`
+                    - `min_inclusive`: `INT`
+                    - `max_inclusive`: `INT`
+                  - `minecraft:biased_to_bottom`: compound `BiasedToBottomInt`
+                    - `min_inclusive`: `INT`
+                    - `max_inclusive`: `INT`
+                  - `minecraft:very_biased_to_bottom`: compound `VeryBiasedToBottomInt`
+                    - `min_inclusive`: `INT`
+                    - `max_inclusive`: `INT`
+                  - `minecraft:clamped`: compound `ClampedInt`
+                    - `source`: either `INT` or a `IntProviders` again
+                    - `min_inclusive`: `INT`
+                    - `max_inclusive`: `INT`
+                  - `minecraft:weighted_list`: compound `WeightedListInt`
+                    - `distribution`: list
+                      - each: compound `Weighted`
+                        - `data`: either `INT` or a `IntProviders` again
+                        - `weight`: `INT`
+                  - `minecraft:clamped_normal`: compound `ClampedNormalInt`
+                    - `mean`: `FLOAT`
+                    - `deviation`: `FLOAT`
+                    - `min_inclusive`: `INT`
+                    - `max_inclusive`: `INT`
+                  - `minecraft:trapezoid`: compound `TrapezoidInt`
+                    - `min`: `INT`
+                    - `max`: `INT`
+                    - `plateau`: `INT`
+            - `minecraft:rotated`: compound `RotatedBlockProvider`
+              - `state`: a `BlockStateProvider` again
+              - `direction`?: enum `Direction` (var int, ids down/up/north/south/west/east: DOWN, UP, NORTH, SOUTH, WEST, EAST)
+            - `minecraft:rule_based`: compound `RuleBasedStateProvider`
+              - `fallback`?: a `BlockStateProvider` again
+              - `rules`: list
+                - each: compound `RuleBasedStateProvider$Rule`
+                  - `if_true`: compound, `type` (id in minecraft:block_predicate_type) selects
+                    - `minecraft:matching_blocks`: compound `MatchingBlocksPredicate`
+                      - `offset`? (default ZERO): `INT_ARRAY`
+                      - `blocks`: set of minecraft:block (a tag or ids)
+                    - `minecraft:matching_block_tag`: compound `MatchingBlockTagPredicate`
+                      - `offset`? (default ZERO): `INT_ARRAY`
+                      - `tag`: `IDENTIFIER`
+                    - `minecraft:matching_fluids`: compound `MatchingFluidsPredicate`
+                      - `offset`? (default ZERO): `INT_ARRAY`
+                      - `fluids`: set of minecraft:fluid (a tag or ids)
+                    - `minecraft:matching_biomes`: compound `MatchingBiomesPredicate`
+                      - `biomes`: set of minecraft:worldgen/biome (a tag or ids)
+                    - `minecraft:has_sturdy_face`: compound `HasSturdyFacePredicate`
+                      - `offset`? (default ZERO): `INT_ARRAY`
+                      - `direction`: enum `Direction` (var int, ids down/up/north/south/west/east: DOWN, UP, NORTH, SOUTH, WEST, EAST)
+                    - `minecraft:solid`: compound `SolidPredicate`
+                      - `offset`? (default ZERO): `INT_ARRAY`
+                    - `minecraft:replaceable`: compound `ReplaceablePredicate`
+                      - `offset`? (default ZERO): `INT_ARRAY`
+                    - `minecraft:would_survive`: compound `WouldSurvivePredicate`
+                      - `offset`? (default ZERO): `INT_ARRAY`
+                      - `state`: one of
+                        - either: id in minecraft:block
+                        - or: compound `BlockState`
+                          - `id`: id in minecraft:block
+                          - `properties`?: map of `STRING` to `STRING`
+                    - `minecraft:inside_world_bounds`: compound `InsideWorldBoundsPredicate`
+                      - `offset`? (default ZERO): `INT_ARRAY`
+                    - `minecraft:any_of`: compound `AnyOfPredicate`
+                      - `predicates`: list of a `BlockPredicate` again
+                    - `minecraft:all_of`: compound `AllOfPredicate`
+                      - `predicates`: list of a `BlockPredicate` again
+                    - `minecraft:not`: compound `NotPredicate`
+                      - `predicate`: a `BlockPredicate` again
+                    - `minecraft:true`: nothing
+                    - `minecraft:unobstructed`: compound `UnobstructedPredicate`
+                      - `offset`? (default ZERO): `INT_ARRAY`
+                    - `minecraft:height_range`: compound `HeightRangePredicate`
+                      - `min_inclusive`: either field or either field or either field or field
+                      - `max_inclusive`: either field or either field or either field or field
+                    - `minecraft:volume_match`: compound `VolumeMatchPredicate`
+                      - `min`: `INT_ARRAY`
+                      - `max`: `INT_ARRAY`
+                      - `match`: a `BlockPredicate` again
+                  - `then`: a `BlockStateProvider` again
+            - `minecraft:simple`: compound `Simple`
+              - `state`: one of
+                - either: id in minecraft:block
+                - or: compound `BlockState`
+                  - `id`: id in minecraft:block
+                  - `properties`?: map of `STRING` to `STRING`
+            - `minecraft:weighted`: compound `WeightedStateProvider`
+              - `entries`: list
+                - each: compound `Weighted`
+                  - `data`: one of
+                    - either: id in minecraft:block
+                    - or: compound `BlockState`
+                      - `id`: id in minecraft:block
+                      - `properties`?: map of `STRING` to `STRING`
+                  - `weight`: `INT`
+  - `minecraft:dual_noise`: compound `DualNoiseProvider`
+    - `variety`: either `INT` or list of `INT`
+    - `slow_noise`: compound `NormalNoise$Parameters`
+      - `base_amplitude`? (default 1.0): `DOUBLE`
+      - `base_octave`: `INT`
+      - `octave_count`? (default 1): `INT`
+      - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+      - `amplitude_modifiers`? (default of): list of `DOUBLE`
+    - `slow_scale`: `FLOAT`
+    - `seed`: `LONG`
+    - `noise`: compound `NormalNoise$Parameters`
+      - `base_amplitude`? (default 1.0): `DOUBLE`
+      - `base_octave`: `INT`
+      - `octave_count`? (default 1): `INT`
+      - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+      - `amplitude_modifiers`? (default of): list of `DOUBLE`
+    - `scale`: `FLOAT`
+    - `states`: list
+      - each: one of
+        - either: id in minecraft:block
+        - or: compound `BlockState`
+          - `id`: id in minecraft:block
+          - `properties`?: map of `STRING` to `STRING`
+  - `minecraft:noise`: compound `NoiseProvider`
+    - `seed`: `LONG`
+    - `noise`: compound `NormalNoise$Parameters`
+      - `base_amplitude`? (default 1.0): `DOUBLE`
+      - `base_octave`: `INT`
+      - `octave_count`? (default 1): `INT`
+      - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+      - `amplitude_modifiers`? (default of): list of `DOUBLE`
+    - `scale`: `FLOAT`
+    - `states`: list
+      - each: one of
+        - either: id in minecraft:block
+        - or: compound `BlockState`
+          - `id`: id in minecraft:block
+          - `properties`?: map of `STRING` to `STRING`
+  - `minecraft:noise_threshold`: compound `NoiseThresholdProvider`
+    - `seed`: `LONG`
+    - `noise`: compound `NormalNoise$Parameters`
+      - `base_amplitude`? (default 1.0): `DOUBLE`
+      - `base_octave`: `INT`
+      - `octave_count`? (default 1): `INT`
+      - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+      - `amplitude_modifiers`? (default of): list of `DOUBLE`
+    - `scale`: `FLOAT`
+    - `threshold`: `FLOAT`
+    - `high_chance`: `FLOAT`
+    - `default_state`: one of
+      - either: id in minecraft:block
+      - or: compound `BlockState`
+        - `id`: id in minecraft:block
+        - `properties`?: map of `STRING` to `STRING`
+    - `low_states`: list
+      - each: one of
+        - either: id in minecraft:block
+        - or: compound `BlockState`
+          - `id`: id in minecraft:block
+          - `properties`?: map of `STRING` to `STRING`
+    - `high_states`: list
+      - each: one of
+        - either: id in minecraft:block
+        - or: compound `BlockState`
+          - `id`: id in minecraft:block
+          - `properties`?: map of `STRING` to `STRING`
+  - `minecraft:random_block`: compound `RandomBlockProvider`
+    - `blocks`: set of minecraft:block (a tag or ids)
+  - `minecraft:randomized_int`: compound `RandomizedIntStateProvider`
+    - `source`: recursive `BlockStateProvider`
+      - the codec `BlockStateProvider`, spelled out above
+    - `property`: `STRING`
+    - `values`: one of
+      - either: `INT`
+      - or: compound, `type` (id in minecraft:int_provider_type) selects
+        - `minecraft:constant`: compound `ConstantInt`
+          - `value`: `INT`
+        - `minecraft:uniform`: compound `UniformInt`
+          - `min_inclusive`: `INT`
+          - `max_inclusive`: `INT`
+        - `minecraft:biased_to_bottom`: compound `BiasedToBottomInt`
+          - `min_inclusive`: `INT`
+          - `max_inclusive`: `INT`
+        - `minecraft:very_biased_to_bottom`: compound `VeryBiasedToBottomInt`
+          - `min_inclusive`: `INT`
+          - `max_inclusive`: `INT`
+        - `minecraft:clamped`: compound `ClampedInt`
+          - `source`: either `INT` or a `IntProviders` again
+          - `min_inclusive`: `INT`
+          - `max_inclusive`: `INT`
+        - `minecraft:weighted_list`: compound `WeightedListInt`
+          - `distribution`: list
+            - each: compound `Weighted`
+              - `data`: either `INT` or a `IntProviders` again
+              - `weight`: `INT`
+        - `minecraft:clamped_normal`: compound `ClampedNormalInt`
+          - `mean`: `FLOAT`
+          - `deviation`: `FLOAT`
+          - `min_inclusive`: `INT`
+          - `max_inclusive`: `INT`
+        - `minecraft:trapezoid`: compound `TrapezoidInt`
+          - `min`: `INT`
+          - `max`: `INT`
+          - `plateau`: `INT`
+  - `minecraft:rotated`: compound `RotatedBlockProvider`
+    - `state`: recursive `BlockStateProvider`
+      - the codec `BlockStateProvider`, spelled out above
+    - `direction`?: enum `Direction` (var int, ids down/up/north/south/west/east: DOWN, UP, NORTH, SOUTH, WEST, EAST)
+  - `minecraft:rule_based`: compound `RuleBasedStateProvider`
+    - `fallback`?: recursive `BlockStateProvider`
+      - the codec `BlockStateProvider`, spelled out above
+    - `rules`: list
+      - each: compound `RuleBasedStateProvider$Rule`
+        - `if_true`: compound, `type` (id in minecraft:block_predicate_type) selects
+          - `minecraft:matching_blocks`: compound `MatchingBlocksPredicate`
+            - `offset`? (default ZERO): `INT_ARRAY`
+            - `blocks`: set of minecraft:block (a tag or ids)
+          - `minecraft:matching_block_tag`: compound `MatchingBlockTagPredicate`
+            - `offset`? (default ZERO): `INT_ARRAY`
+            - `tag`: `IDENTIFIER`
+          - `minecraft:matching_fluids`: compound `MatchingFluidsPredicate`
+            - `offset`? (default ZERO): `INT_ARRAY`
+            - `fluids`: set of minecraft:fluid (a tag or ids)
+          - `minecraft:matching_biomes`: compound `MatchingBiomesPredicate`
+            - `biomes`: set of minecraft:worldgen/biome (a tag or ids)
+          - `minecraft:has_sturdy_face`: compound `HasSturdyFacePredicate`
+            - `offset`? (default ZERO): `INT_ARRAY`
+            - `direction`: enum `Direction` (var int, ids down/up/north/south/west/east: DOWN, UP, NORTH, SOUTH, WEST, EAST)
+          - `minecraft:solid`: compound `SolidPredicate`
+            - `offset`? (default ZERO): `INT_ARRAY`
+          - `minecraft:replaceable`: compound `ReplaceablePredicate`
+            - `offset`? (default ZERO): `INT_ARRAY`
+          - `minecraft:would_survive`: compound `WouldSurvivePredicate`
+            - `offset`? (default ZERO): `INT_ARRAY`
+            - `state`: one of
+              - either: id in minecraft:block
+              - or: compound `BlockState`
+                - `id`: id in minecraft:block
+                - `properties`?: map of `STRING` to `STRING`
+          - `minecraft:inside_world_bounds`: compound `InsideWorldBoundsPredicate`
+            - `offset`? (default ZERO): `INT_ARRAY`
+          - `minecraft:any_of`: compound `AnyOfPredicate`
+            - `predicates`: list of a `BlockPredicate` again
+          - `minecraft:all_of`: compound `AllOfPredicate`
+            - `predicates`: list of a `BlockPredicate` again
+          - `minecraft:not`: compound `NotPredicate`
+            - `predicate`: a `BlockPredicate` again
+          - `minecraft:true`: nothing
+          - `minecraft:unobstructed`: compound `UnobstructedPredicate`
+            - `offset`? (default ZERO): `INT_ARRAY`
+          - `minecraft:height_range`: compound `HeightRangePredicate`
+            - `min_inclusive`: either field or either field or either field or field
+            - `max_inclusive`: either field or either field or either field or field
+          - `minecraft:volume_match`: compound `VolumeMatchPredicate`
+            - `min`: `INT_ARRAY`
+            - `max`: `INT_ARRAY`
+            - `match`: a `BlockPredicate` again
+        - `then`: recursive `BlockStateProvider`
+          - the codec `BlockStateProvider`, spelled out above
+  - `minecraft:simple`: compound `Simple`
+    - `state`: one of
+      - either: id in minecraft:block
+      - or: compound `BlockState`
+        - `id`: id in minecraft:block
+        - `properties`?: map of `STRING` to `STRING`
+  - `minecraft:weighted`: compound `WeightedStateProvider`
+    - `entries`: list
+      - each: compound `Weighted`
+        - `data`: one of
+          - either: id in minecraft:block
+          - or: compound `BlockState`
+            - `id`: id in minecraft:block
+            - `properties`?: map of `STRING` to `STRING`
+        - `weight`: `INT`
+
+<a id="registries-minecraft-zombie_nautilus_variant"></a>
+### minecraft:zombie_nautilus_variant
+
+`net.minecraft.world.entity.animal.nautilus.ZombieNautilusVariant`.NETWORK_CODEC
+
+- `model`? (default NORMAL): enum `ZombieNautilusVariant$ModelType` (var int, ids normal/warm: NORMAL, WARM)
+- `asset_id`: `IDENTIFIER`
+
+
+## Shared types
+
+| entry | Java | shape |
+|---|---|---|
+| [`net.minecraft.network.chat.ChatTypeDecoration`](#types-net-minecraft-network-chat-chattypedecoration) | `net.minecraft.network.chat.ChatTypeDecoration` | struct `ChatTypeDecoration` |
+| [`net.minecraft.network.chat.ClickEvent`](#types-net-minecraft-network-chat-clickevent) | `net.minecraft.network.chat.ClickEvent` | dispatch `ClickEvent` on ? |
+| [`net.minecraft.network.chat.ComponentSerialization`](#types-net-minecraft-network-chat-componentserialization) | `net.minecraft.network.chat.ComponentSerialization` | recursive `Component`: either either `STRING` or list of a `Component` again or struct `MutableComponent` |
+| [`net.minecraft.network.chat.HoverEvent`](#types-net-minecraft-network-chat-hoverevent) | `net.minecraft.network.chat.HoverEvent` | dispatch `HoverEvent` on ? |
+| [`net.minecraft.network.chat.Style$Serializer`](#types-net-minecraft-network-chat-styleserializer) | `net.minecraft.network.chat.Style$Serializer` | struct `Style` |
+| [`net.minecraft.world.item.ItemStack`](#types-net-minecraft-world-item-itemstack) | `net.minecraft.world.item.ItemStack` | recursive `ItemStack`: struct `ItemStack` |
+| [`net.minecraft.world.level.DataPackConfig`](#types-net-minecraft-world-level-datapackconfig) | `net.minecraft.world.level.DataPackConfig` | struct `DataPackConfig` |
+| [`net.minecraft.world.level.WorldDataConfiguration`](#types-net-minecraft-world-level-worlddataconfiguration) | `net.minecraft.world.level.WorldDataConfiguration` | struct `WorldDataConfiguration` |
+| [`net.minecraft.world.level.levelgen.WorldDimensions`](#types-net-minecraft-world-level-levelgen-worlddimensions) | `net.minecraft.world.level.levelgen.WorldDimensions` | struct `WorldDimensions` |
+| [`net.minecraft.world.level.levelgen.WorldOptions`](#types-net-minecraft-world-level-levelgen-worldoptions) | `net.minecraft.world.level.levelgen.WorldOptions` | struct `WorldOptions` |
+| [`net.minecraft.world.level.storage.LevelData$RespawnData`](#types-net-minecraft-world-level-storage-leveldatarespawndata) | `net.minecraft.world.level.storage.LevelData$RespawnData` | struct `LevelData$RespawnData` |
+
+<a id="types-net-minecraft-network-chat-chattypedecoration"></a>
+### net.minecraft.network.chat.ChatTypeDecoration
+
+`net.minecraft.network.chat.ChatTypeDecoration`.CODEC
+
+- `translation_key`: `STRING`
+- `parameters`: list of enum `ChatTypeDecoration$Parameter` (var int, ids sender/target/content: SENDER, TARGET, CONTENT)
+- `style`? (default EMPTY): compound `Style`
+  - `color`?: `STRING`
+  - `shadow_color`?: `INT`
+  - `bold`?: `BOOL`
+  - `italic`?: `BOOL`
+  - `underlined`?: `BOOL`
+  - `strikethrough`?: `BOOL`
+  - `obfuscated`?: `BOOL`
+  - `click_event`?: compound, `action` (enum `ClickEvent$Action` (var int, ids open_url/open_file/run_command/suggest_command/show_dialog/change_page/copy_to_clipboard/custom: OPEN_URL, OPEN_FILE, RUN_COMMAND, SUGGEST_COMMAND, SHOW_DIALOG, CHANGE_PAGE, COPY_TO_CLIPBOARD, CUSTOM)) selects
+    - `open_url`: compound `ClickEvent$OpenUrl`
+      - `url`: `STRING`
+    - `open_file`: compound `ClickEvent$OpenFile`
+      - `path`: `STRING`
+    - `run_command`: compound `ClickEvent$RunCommand`
+      - `command`: `STRING`
+    - `suggest_command`: compound `ClickEvent$SuggestCommand`
+      - `command`: `STRING`
+    - `show_dialog`: compound `ClickEvent$ShowDialog`
+      - `dialog`: id in minecraft:dialog or inline
+        - inline: compound, `type` (id in minecraft:dialog_type) selects
+          - `minecraft:notice`: compound `NoticeDialog`
+            - `title`: a text component
+            - `external_title`?: a text component
+            - `can_close_with_escape`? (default true): `BOOL`
+            - `pause`? (default true): `BOOL`
+            - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+            - `body`? (default []): list
+              - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                - `minecraft:item`: compound `ItemBody`
+                  - `item`: compound `ItemStackTemplate`
+                    - `id`: id in minecraft:item
+                    - `count`? (default 1): `INT`
+                    - `components`? (default EMPTY): an NBT tag
+                  - `description`?: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+                  - `show_decorations`? (default true): `BOOL`
+                  - `show_tooltip`? (default true): `BOOL`
+                  - `width`? (default 16): `INT`
+                  - `height`? (default 16): `INT`
+                - `minecraft:plain_message`: compound `PlainMessage`
+                  - `contents`: a text component
+                  - `width`? (default 200): `INT`
+            - `inputs`? (default []): list
+              - each: compound `Input`
+                - `key`: `STRING`
+                - `minecraft:boolean`: compound `BooleanInput`
+                  - `label`: a text component
+                  - `initial`? (default false): `BOOL`
+                  - `on_true`? (default true): `STRING`
+                  - `on_false`? (default false): `STRING`
+                - `minecraft:number_range`: compound `NumberRangeInput`
+                  - `width`? (default 200): `INT`
+                  - `label`: a text component
+                  - `label_format`? (default options.generic_value): `STRING`
+                  - `start`: `FLOAT`
+                  - `end`: `FLOAT`
+                  - `initial`?: `FLOAT`
+                  - `step`?: `FLOAT`
+                - `minecraft:single_option`: compound `SingleOptionInput`
+                  - `width`? (default 200): `INT`
+                  - `options`: list
+                    - each: compound `SingleOptionInput$Entry`
+                      - `id`: `STRING`
+                      - `display`?: a text component
+                      - `initial`? (default false): `BOOL`
+                  - `label`: a text component
+                  - `label_visible`? (default true): `BOOL`
+                - `minecraft:text`: compound `TextInput`
+                  - `width`? (default 200): `INT`
+                  - `label`: a text component
+                  - `label_visible`? (default true): `BOOL`
+                  - `initial`?: `STRING`
+                  - `max_length`? (default 32): `INT`
+                  - `multiline`?: compound `TextInput$MultilineOptions`
+                    - `max_lines`?: `INT`
+                    - `height`?: `INT`
+            - `action`? (default DEFAULT_ACTION): compound `ActionButton`
+              - `label`: a text component
+              - `tooltip`?: a text component
+              - `width`? (default 150): `INT`
+              - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                  - `url`: `STRING`
+                - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                  - `command`: `STRING`
+                - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                  - `command`: `STRING`
+                - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                  - `page`: `INT`
+                - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                  - `value`: `STRING`
+                - `minecraft:custom`: compound `ClickEvent$Custom`
+                  - `id`: `IDENTIFIER`
+                  - `payload`?: an NBT tag
+                - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                  - `template`: `STRING`
+                - `minecraft:dynamic/custom`: compound `CustomAll`
+                  - `id`: `IDENTIFIER`
+                  - `additions`?: an NBT tag
+          - `minecraft:server_links`: compound `ServerLinksDialog`
+            - `title`: a text component
+            - `external_title`?: a text component
+            - `can_close_with_escape`? (default true): `BOOL`
+            - `pause`? (default true): `BOOL`
+            - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+            - `body`? (default []): list
+              - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                - `minecraft:item`: compound `ItemBody`
+                  - `item`: compound `ItemStackTemplate`
+                    - `id`: id in minecraft:item
+                    - `count`? (default 1): `INT`
+                    - `components`? (default EMPTY): an NBT tag
+                  - `description`?: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+                  - `show_decorations`? (default true): `BOOL`
+                  - `show_tooltip`? (default true): `BOOL`
+                  - `width`? (default 16): `INT`
+                  - `height`? (default 16): `INT`
+                - `minecraft:plain_message`: compound `PlainMessage`
+                  - `contents`: a text component
+                  - `width`? (default 200): `INT`
+            - `inputs`? (default []): list
+              - each: compound `Input`
+                - `key`: `STRING`
+                - `minecraft:boolean`: compound `BooleanInput`
+                  - `label`: a text component
+                  - `initial`? (default false): `BOOL`
+                  - `on_true`? (default true): `STRING`
+                  - `on_false`? (default false): `STRING`
+                - `minecraft:number_range`: compound `NumberRangeInput`
+                  - `width`? (default 200): `INT`
+                  - `label`: a text component
+                  - `label_format`? (default options.generic_value): `STRING`
+                  - `start`: `FLOAT`
+                  - `end`: `FLOAT`
+                  - `initial`?: `FLOAT`
+                  - `step`?: `FLOAT`
+                - `minecraft:single_option`: compound `SingleOptionInput`
+                  - `width`? (default 200): `INT`
+                  - `options`: list
+                    - each: compound `SingleOptionInput$Entry`
+                      - `id`: `STRING`
+                      - `display`?: a text component
+                      - `initial`? (default false): `BOOL`
+                  - `label`: a text component
+                  - `label_visible`? (default true): `BOOL`
+                - `minecraft:text`: compound `TextInput`
+                  - `width`? (default 200): `INT`
+                  - `label`: a text component
+                  - `label_visible`? (default true): `BOOL`
+                  - `initial`?: `STRING`
+                  - `max_length`? (default 32): `INT`
+                  - `multiline`?: compound `TextInput$MultilineOptions`
+                    - `max_lines`?: `INT`
+                    - `height`?: `INT`
+            - `exit_action`?: compound `ActionButton`
+              - `label`: a text component
+              - `tooltip`?: a text component
+              - `width`? (default 150): `INT`
+              - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                  - `url`: `STRING`
+                - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                  - `command`: `STRING`
+                - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                  - `command`: `STRING`
+                - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                  - `page`: `INT`
+                - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                  - `value`: `STRING`
+                - `minecraft:custom`: compound `ClickEvent$Custom`
+                  - `id`: `IDENTIFIER`
+                  - `payload`?: an NBT tag
+                - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                  - `template`: `STRING`
+                - `minecraft:dynamic/custom`: compound `CustomAll`
+                  - `id`: `IDENTIFIER`
+                  - `additions`?: an NBT tag
+            - `columns`? (default 2): `INT`
+            - `button_width`? (default 150): recursive `ServerLinksDialog.WIDTH_CODEC`: `INT`
+          - `minecraft:dialog_list`: compound `DialogListDialog`
+            - `title`: a text component
+            - `external_title`?: a text component
+            - `can_close_with_escape`? (default true): `BOOL`
+            - `pause`? (default true): `BOOL`
+            - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+            - `body`? (default []): list
+              - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                - `minecraft:item`: compound `ItemBody`
+                  - `item`: compound `ItemStackTemplate`
+                    - `id`: id in minecraft:item
+                    - `count`? (default 1): `INT`
+                    - `components`? (default EMPTY): an NBT tag
+                  - `description`?: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+                  - `show_decorations`? (default true): `BOOL`
+                  - `show_tooltip`? (default true): `BOOL`
+                  - `width`? (default 16): `INT`
+                  - `height`? (default 16): `INT`
+                - `minecraft:plain_message`: compound `PlainMessage`
+                  - `contents`: a text component
+                  - `width`? (default 200): `INT`
+            - `inputs`? (default []): list
+              - each: compound `Input`
+                - `key`: `STRING`
+                - `minecraft:boolean`: compound `BooleanInput`
+                  - `label`: a text component
+                  - `initial`? (default false): `BOOL`
+                  - `on_true`? (default true): `STRING`
+                  - `on_false`? (default false): `STRING`
+                - `minecraft:number_range`: compound `NumberRangeInput`
+                  - `width`? (default 200): `INT`
+                  - `label`: a text component
+                  - `label_format`? (default options.generic_value): `STRING`
+                  - `start`: `FLOAT`
+                  - `end`: `FLOAT`
+                  - `initial`?: `FLOAT`
+                  - `step`?: `FLOAT`
+                - `minecraft:single_option`: compound `SingleOptionInput`
+                  - `width`? (default 200): `INT`
+                  - `options`: list
+                    - each: compound `SingleOptionInput$Entry`
+                      - `id`: `STRING`
+                      - `display`?: a text component
+                      - `initial`? (default false): `BOOL`
+                  - `label`: a text component
+                  - `label_visible`? (default true): `BOOL`
+                - `minecraft:text`: compound `TextInput`
+                  - `width`? (default 200): `INT`
+                  - `label`: a text component
+                  - `label_visible`? (default true): `BOOL`
+                  - `initial`?: `STRING`
+                  - `max_length`? (default 32): `INT`
+                  - `multiline`?: compound `TextInput$MultilineOptions`
+                    - `max_lines`?: `INT`
+                    - `height`?: `INT`
+            - `dialogs`: set of minecraft:dialog (a tag or ids)
+            - `exit_action`?: compound `ActionButton`
+              - `label`: a text component
+              - `tooltip`?: a text component
+              - `width`? (default 150): `INT`
+              - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                  - `url`: `STRING`
+                - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                  - `command`: `STRING`
+                - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                  - `command`: `STRING`
+                - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                  - `page`: `INT`
+                - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                  - `value`: `STRING`
+                - `minecraft:custom`: compound `ClickEvent$Custom`
+                  - `id`: `IDENTIFIER`
+                  - `payload`?: an NBT tag
+                - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                  - `template`: `STRING`
+                - `minecraft:dynamic/custom`: compound `CustomAll`
+                  - `id`: `IDENTIFIER`
+                  - `additions`?: an NBT tag
+            - `columns`? (default 2): `INT`
+            - `button_width`? (default 150): recursive `DialogListDialog.WIDTH_CODEC`: `INT`
+          - `minecraft:multi_action`: compound `MultiActionDialog`
+            - `title`: a text component
+            - `external_title`?: a text component
+            - `can_close_with_escape`? (default true): `BOOL`
+            - `pause`? (default true): `BOOL`
+            - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+            - `body`? (default []): list
+              - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                - `minecraft:item`: compound `ItemBody`
+                  - `item`: compound `ItemStackTemplate`
+                    - `id`: id in minecraft:item
+                    - `count`? (default 1): `INT`
+                    - `components`? (default EMPTY): an NBT tag
+                  - `description`?: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+                  - `show_decorations`? (default true): `BOOL`
+                  - `show_tooltip`? (default true): `BOOL`
+                  - `width`? (default 16): `INT`
+                  - `height`? (default 16): `INT`
+                - `minecraft:plain_message`: compound `PlainMessage`
+                  - `contents`: a text component
+                  - `width`? (default 200): `INT`
+            - `inputs`? (default []): list
+              - each: compound `Input`
+                - `key`: `STRING`
+                - `minecraft:boolean`: compound `BooleanInput`
+                  - `label`: a text component
+                  - `initial`? (default false): `BOOL`
+                  - `on_true`? (default true): `STRING`
+                  - `on_false`? (default false): `STRING`
+                - `minecraft:number_range`: compound `NumberRangeInput`
+                  - `width`? (default 200): `INT`
+                  - `label`: a text component
+                  - `label_format`? (default options.generic_value): `STRING`
+                  - `start`: `FLOAT`
+                  - `end`: `FLOAT`
+                  - `initial`?: `FLOAT`
+                  - `step`?: `FLOAT`
+                - `minecraft:single_option`: compound `SingleOptionInput`
+                  - `width`? (default 200): `INT`
+                  - `options`: list
+                    - each: compound `SingleOptionInput$Entry`
+                      - `id`: `STRING`
+                      - `display`?: a text component
+                      - `initial`? (default false): `BOOL`
+                  - `label`: a text component
+                  - `label_visible`? (default true): `BOOL`
+                - `minecraft:text`: compound `TextInput`
+                  - `width`? (default 200): `INT`
+                  - `label`: a text component
+                  - `label_visible`? (default true): `BOOL`
+                  - `initial`?: `STRING`
+                  - `max_length`? (default 32): `INT`
+                  - `multiline`?: compound `TextInput$MultilineOptions`
+                    - `max_lines`?: `INT`
+                    - `height`?: `INT`
+            - `actions`: list
+              - each: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+            - `exit_action`?: compound `ActionButton`
+              - `label`: a text component
+              - `tooltip`?: a text component
+              - `width`? (default 150): `INT`
+              - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                  - `url`: `STRING`
+                - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                  - `command`: `STRING`
+                - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                  - `command`: `STRING`
+                - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                  - `page`: `INT`
+                - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                  - `value`: `STRING`
+                - `minecraft:custom`: compound `ClickEvent$Custom`
+                  - `id`: `IDENTIFIER`
+                  - `payload`?: an NBT tag
+                - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                  - `template`: `STRING`
+                - `minecraft:dynamic/custom`: compound `CustomAll`
+                  - `id`: `IDENTIFIER`
+                  - `additions`?: an NBT tag
+            - `columns`? (default 2): `INT`
+          - `minecraft:confirmation`: compound `ConfirmationDialog`
+            - `title`: a text component
+            - `external_title`?: a text component
+            - `can_close_with_escape`? (default true): `BOOL`
+            - `pause`? (default true): `BOOL`
+            - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+            - `body`? (default []): list
+              - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                - `minecraft:item`: compound `ItemBody`
+                  - `item`: compound `ItemStackTemplate`
+                    - `id`: id in minecraft:item
+                    - `count`? (default 1): `INT`
+                    - `components`? (default EMPTY): an NBT tag
+                  - `description`?: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+                  - `show_decorations`? (default true): `BOOL`
+                  - `show_tooltip`? (default true): `BOOL`
+                  - `width`? (default 16): `INT`
+                  - `height`? (default 16): `INT`
+                - `minecraft:plain_message`: compound `PlainMessage`
+                  - `contents`: a text component
+                  - `width`? (default 200): `INT`
+            - `inputs`? (default []): list
+              - each: compound `Input`
+                - `key`: `STRING`
+                - `minecraft:boolean`: compound `BooleanInput`
+                  - `label`: a text component
+                  - `initial`? (default false): `BOOL`
+                  - `on_true`? (default true): `STRING`
+                  - `on_false`? (default false): `STRING`
+                - `minecraft:number_range`: compound `NumberRangeInput`
+                  - `width`? (default 200): `INT`
+                  - `label`: a text component
+                  - `label_format`? (default options.generic_value): `STRING`
+                  - `start`: `FLOAT`
+                  - `end`: `FLOAT`
+                  - `initial`?: `FLOAT`
+                  - `step`?: `FLOAT`
+                - `minecraft:single_option`: compound `SingleOptionInput`
+                  - `width`? (default 200): `INT`
+                  - `options`: list
+                    - each: compound `SingleOptionInput$Entry`
+                      - `id`: `STRING`
+                      - `display`?: a text component
+                      - `initial`? (default false): `BOOL`
+                  - `label`: a text component
+                  - `label_visible`? (default true): `BOOL`
+                - `minecraft:text`: compound `TextInput`
+                  - `width`? (default 200): `INT`
+                  - `label`: a text component
+                  - `label_visible`? (default true): `BOOL`
+                  - `initial`?: `STRING`
+                  - `max_length`? (default 32): `INT`
+                  - `multiline`?: compound `TextInput$MultilineOptions`
+                    - `max_lines`?: `INT`
+                    - `height`?: `INT`
+            - `yes`: compound `ActionButton`
+              - `label`: a text component
+              - `tooltip`?: a text component
+              - `width`? (default 150): `INT`
+              - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                  - `url`: `STRING`
+                - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                  - `command`: `STRING`
+                - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                  - `command`: `STRING`
+                - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                  - `page`: `INT`
+                - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                  - `value`: `STRING`
+                - `minecraft:custom`: compound `ClickEvent$Custom`
+                  - `id`: `IDENTIFIER`
+                  - `payload`?: an NBT tag
+                - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                  - `template`: `STRING`
+                - `minecraft:dynamic/custom`: compound `CustomAll`
+                  - `id`: `IDENTIFIER`
+                  - `additions`?: an NBT tag
+            - `no`: compound `ActionButton`
+              - `label`: a text component
+              - `tooltip`?: a text component
+              - `width`? (default 150): `INT`
+              - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                  - `url`: `STRING`
+                - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                  - `command`: `STRING`
+                - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                  - `command`: `STRING`
+                - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                  - `page`: `INT`
+                - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                  - `value`: `STRING`
+                - `minecraft:custom`: compound `ClickEvent$Custom`
+                  - `id`: `IDENTIFIER`
+                  - `payload`?: an NBT tag
+                - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                  - `template`: `STRING`
+                - `minecraft:dynamic/custom`: compound `CustomAll`
+                  - `id`: `IDENTIFIER`
+                  - `additions`?: an NBT tag
+    - `change_page`: compound `ClickEvent$ChangePage`
+      - `page`: `INT`
+    - `copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+      - `value`: `STRING`
+    - `custom`: compound `ClickEvent$Custom`
+      - `id`: `IDENTIFIER`
+      - `payload`?: an NBT tag
+  - `hover_event`?: compound, `action` (enum `HoverEvent$Action` (var int, ids show_text/show_item/show_entity: SHOW_TEXT, SHOW_ITEM, SHOW_ENTITY)) selects
+    - `show_text`: compound `HoverEvent$ShowText`
+      - `value`: a text component
+    - `show_item`: compound `ItemStackTemplate`
+      - `id`: id in minecraft:item
+      - `count`? (default 1): `INT`
+      - `components`? (default EMPTY): an NBT tag
+    - `show_entity`: compound `HoverEvent$ShowEntity`
+      - `id`: id in minecraft:entity_type
+      - `uuid`: `UUID_LENIENT`
+      - `name`?: a text component
+  - `insertion`?: `STRING`
+  - `font`?: `IDENTIFIER`
+
+<a id="types-net-minecraft-network-chat-clickevent"></a>
+### net.minecraft.network.chat.ClickEvent
+
+`net.minecraft.network.chat.ClickEvent`.CODEC
+
+- `action`: enum `ClickEvent$Action` (var int, ids open_url/open_file/run_command/suggest_command/show_dialog/change_page/copy_to_clipboard/custom: OPEN_URL, OPEN_FILE, RUN_COMMAND, SUGGEST_COMMAND, SHOW_DIALOG, CHANGE_PAGE, COPY_TO_CLIPBOARD, CUSTOM) selects the case
+- `open_url`: compound `ClickEvent$OpenUrl`
+  - `url`: `STRING`
+- `open_file`: compound `ClickEvent$OpenFile`
+  - `path`: `STRING`
+- `run_command`: compound `ClickEvent$RunCommand`
+  - `command`: `STRING`
+- `suggest_command`: compound `ClickEvent$SuggestCommand`
+  - `command`: `STRING`
+- `show_dialog`: compound `ClickEvent$ShowDialog`
+  - `dialog`: id in minecraft:dialog or inline
+    - inline: compound, `type` (id in minecraft:dialog_type) selects
+      - `minecraft:notice`: compound `NoticeDialog`
+        - `title`: a text component
+        - `external_title`?: a text component
+        - `can_close_with_escape`? (default true): `BOOL`
+        - `pause`? (default true): `BOOL`
+        - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+        - `body`? (default []): list
+          - each: compound, `type` (id in minecraft:dialog_body_type) selects
+            - `minecraft:item`: compound `ItemBody`
+              - `item`: compound `ItemStackTemplate`
+                - `id`: id in minecraft:item
+                - `count`? (default 1): `INT`
+                - `components`? (default EMPTY): an NBT tag
+              - `description`?: compound `PlainMessage`
+                - `contents`: a text component
+                - `width`? (default 200): `INT`
+              - `show_decorations`? (default true): `BOOL`
+              - `show_tooltip`? (default true): `BOOL`
+              - `width`? (default 16): `INT`
+              - `height`? (default 16): `INT`
+            - `minecraft:plain_message`: compound `PlainMessage`
+              - `contents`: a text component
+              - `width`? (default 200): `INT`
+        - `inputs`? (default []): list
+          - each: compound `Input`
+            - `key`: `STRING`
+            - `minecraft:boolean`: compound `BooleanInput`
+              - `label`: a text component
+              - `initial`? (default false): `BOOL`
+              - `on_true`? (default true): `STRING`
+              - `on_false`? (default false): `STRING`
+            - `minecraft:number_range`: compound `NumberRangeInput`
+              - `width`? (default 200): `INT`
+              - `label`: a text component
+              - `label_format`? (default options.generic_value): `STRING`
+              - `start`: `FLOAT`
+              - `end`: `FLOAT`
+              - `initial`?: `FLOAT`
+              - `step`?: `FLOAT`
+            - `minecraft:single_option`: compound `SingleOptionInput`
+              - `width`? (default 200): `INT`
+              - `options`: list
+                - each: compound `SingleOptionInput$Entry`
+                  - `id`: `STRING`
+                  - `display`?: a text component
+                  - `initial`? (default false): `BOOL`
+              - `label`: a text component
+              - `label_visible`? (default true): `BOOL`
+            - `minecraft:text`: compound `TextInput`
+              - `width`? (default 200): `INT`
+              - `label`: a text component
+              - `label_visible`? (default true): `BOOL`
+              - `initial`?: `STRING`
+              - `max_length`? (default 32): `INT`
+              - `multiline`?: compound `TextInput$MultilineOptions`
+                - `max_lines`?: `INT`
+                - `height`?: `INT`
+        - `action`? (default DEFAULT_ACTION): compound `ActionButton`
+          - `label`: a text component
+          - `tooltip`?: a text component
+          - `width`? (default 150): `INT`
+          - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+            - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+              - `url`: `STRING`
+            - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+              - `command`: `STRING`
+            - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+              - `command`: `STRING`
+            - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+            - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+              - `page`: `INT`
+            - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+              - `value`: `STRING`
+            - `minecraft:custom`: compound `ClickEvent$Custom`
+              - `id`: `IDENTIFIER`
+              - `payload`?: an NBT tag
+            - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+              - `template`: `STRING`
+            - `minecraft:dynamic/custom`: compound `CustomAll`
+              - `id`: `IDENTIFIER`
+              - `additions`?: an NBT tag
+      - `minecraft:server_links`: compound `ServerLinksDialog`
+        - `title`: a text component
+        - `external_title`?: a text component
+        - `can_close_with_escape`? (default true): `BOOL`
+        - `pause`? (default true): `BOOL`
+        - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+        - `body`? (default []): list
+          - each: compound, `type` (id in minecraft:dialog_body_type) selects
+            - `minecraft:item`: compound `ItemBody`
+              - `item`: compound `ItemStackTemplate`
+                - `id`: id in minecraft:item
+                - `count`? (default 1): `INT`
+                - `components`? (default EMPTY): an NBT tag
+              - `description`?: compound `PlainMessage`
+                - `contents`: a text component
+                - `width`? (default 200): `INT`
+              - `show_decorations`? (default true): `BOOL`
+              - `show_tooltip`? (default true): `BOOL`
+              - `width`? (default 16): `INT`
+              - `height`? (default 16): `INT`
+            - `minecraft:plain_message`: compound `PlainMessage`
+              - `contents`: a text component
+              - `width`? (default 200): `INT`
+        - `inputs`? (default []): list
+          - each: compound `Input`
+            - `key`: `STRING`
+            - `minecraft:boolean`: compound `BooleanInput`
+              - `label`: a text component
+              - `initial`? (default false): `BOOL`
+              - `on_true`? (default true): `STRING`
+              - `on_false`? (default false): `STRING`
+            - `minecraft:number_range`: compound `NumberRangeInput`
+              - `width`? (default 200): `INT`
+              - `label`: a text component
+              - `label_format`? (default options.generic_value): `STRING`
+              - `start`: `FLOAT`
+              - `end`: `FLOAT`
+              - `initial`?: `FLOAT`
+              - `step`?: `FLOAT`
+            - `minecraft:single_option`: compound `SingleOptionInput`
+              - `width`? (default 200): `INT`
+              - `options`: list
+                - each: compound `SingleOptionInput$Entry`
+                  - `id`: `STRING`
+                  - `display`?: a text component
+                  - `initial`? (default false): `BOOL`
+              - `label`: a text component
+              - `label_visible`? (default true): `BOOL`
+            - `minecraft:text`: compound `TextInput`
+              - `width`? (default 200): `INT`
+              - `label`: a text component
+              - `label_visible`? (default true): `BOOL`
+              - `initial`?: `STRING`
+              - `max_length`? (default 32): `INT`
+              - `multiline`?: compound `TextInput$MultilineOptions`
+                - `max_lines`?: `INT`
+                - `height`?: `INT`
+        - `exit_action`?: compound `ActionButton`
+          - `label`: a text component
+          - `tooltip`?: a text component
+          - `width`? (default 150): `INT`
+          - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+            - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+              - `url`: `STRING`
+            - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+              - `command`: `STRING`
+            - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+              - `command`: `STRING`
+            - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+            - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+              - `page`: `INT`
+            - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+              - `value`: `STRING`
+            - `minecraft:custom`: compound `ClickEvent$Custom`
+              - `id`: `IDENTIFIER`
+              - `payload`?: an NBT tag
+            - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+              - `template`: `STRING`
+            - `minecraft:dynamic/custom`: compound `CustomAll`
+              - `id`: `IDENTIFIER`
+              - `additions`?: an NBT tag
+        - `columns`? (default 2): `INT`
+        - `button_width`? (default 150): recursive `ServerLinksDialog.WIDTH_CODEC`: `INT`
+      - `minecraft:dialog_list`: compound `DialogListDialog`
+        - `title`: a text component
+        - `external_title`?: a text component
+        - `can_close_with_escape`? (default true): `BOOL`
+        - `pause`? (default true): `BOOL`
+        - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+        - `body`? (default []): list
+          - each: compound, `type` (id in minecraft:dialog_body_type) selects
+            - `minecraft:item`: compound `ItemBody`
+              - `item`: compound `ItemStackTemplate`
+                - `id`: id in minecraft:item
+                - `count`? (default 1): `INT`
+                - `components`? (default EMPTY): an NBT tag
+              - `description`?: compound `PlainMessage`
+                - `contents`: a text component
+                - `width`? (default 200): `INT`
+              - `show_decorations`? (default true): `BOOL`
+              - `show_tooltip`? (default true): `BOOL`
+              - `width`? (default 16): `INT`
+              - `height`? (default 16): `INT`
+            - `minecraft:plain_message`: compound `PlainMessage`
+              - `contents`: a text component
+              - `width`? (default 200): `INT`
+        - `inputs`? (default []): list
+          - each: compound `Input`
+            - `key`: `STRING`
+            - `minecraft:boolean`: compound `BooleanInput`
+              - `label`: a text component
+              - `initial`? (default false): `BOOL`
+              - `on_true`? (default true): `STRING`
+              - `on_false`? (default false): `STRING`
+            - `minecraft:number_range`: compound `NumberRangeInput`
+              - `width`? (default 200): `INT`
+              - `label`: a text component
+              - `label_format`? (default options.generic_value): `STRING`
+              - `start`: `FLOAT`
+              - `end`: `FLOAT`
+              - `initial`?: `FLOAT`
+              - `step`?: `FLOAT`
+            - `minecraft:single_option`: compound `SingleOptionInput`
+              - `width`? (default 200): `INT`
+              - `options`: list
+                - each: compound `SingleOptionInput$Entry`
+                  - `id`: `STRING`
+                  - `display`?: a text component
+                  - `initial`? (default false): `BOOL`
+              - `label`: a text component
+              - `label_visible`? (default true): `BOOL`
+            - `minecraft:text`: compound `TextInput`
+              - `width`? (default 200): `INT`
+              - `label`: a text component
+              - `label_visible`? (default true): `BOOL`
+              - `initial`?: `STRING`
+              - `max_length`? (default 32): `INT`
+              - `multiline`?: compound `TextInput$MultilineOptions`
+                - `max_lines`?: `INT`
+                - `height`?: `INT`
+        - `dialogs`: set of minecraft:dialog (a tag or ids)
+        - `exit_action`?: compound `ActionButton`
+          - `label`: a text component
+          - `tooltip`?: a text component
+          - `width`? (default 150): `INT`
+          - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+            - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+              - `url`: `STRING`
+            - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+              - `command`: `STRING`
+            - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+              - `command`: `STRING`
+            - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+            - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+              - `page`: `INT`
+            - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+              - `value`: `STRING`
+            - `minecraft:custom`: compound `ClickEvent$Custom`
+              - `id`: `IDENTIFIER`
+              - `payload`?: an NBT tag
+            - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+              - `template`: `STRING`
+            - `minecraft:dynamic/custom`: compound `CustomAll`
+              - `id`: `IDENTIFIER`
+              - `additions`?: an NBT tag
+        - `columns`? (default 2): `INT`
+        - `button_width`? (default 150): recursive `DialogListDialog.WIDTH_CODEC`: `INT`
+      - `minecraft:multi_action`: compound `MultiActionDialog`
+        - `title`: a text component
+        - `external_title`?: a text component
+        - `can_close_with_escape`? (default true): `BOOL`
+        - `pause`? (default true): `BOOL`
+        - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+        - `body`? (default []): list
+          - each: compound, `type` (id in minecraft:dialog_body_type) selects
+            - `minecraft:item`: compound `ItemBody`
+              - `item`: compound `ItemStackTemplate`
+                - `id`: id in minecraft:item
+                - `count`? (default 1): `INT`
+                - `components`? (default EMPTY): an NBT tag
+              - `description`?: compound `PlainMessage`
+                - `contents`: a text component
+                - `width`? (default 200): `INT`
+              - `show_decorations`? (default true): `BOOL`
+              - `show_tooltip`? (default true): `BOOL`
+              - `width`? (default 16): `INT`
+              - `height`? (default 16): `INT`
+            - `minecraft:plain_message`: compound `PlainMessage`
+              - `contents`: a text component
+              - `width`? (default 200): `INT`
+        - `inputs`? (default []): list
+          - each: compound `Input`
+            - `key`: `STRING`
+            - `minecraft:boolean`: compound `BooleanInput`
+              - `label`: a text component
+              - `initial`? (default false): `BOOL`
+              - `on_true`? (default true): `STRING`
+              - `on_false`? (default false): `STRING`
+            - `minecraft:number_range`: compound `NumberRangeInput`
+              - `width`? (default 200): `INT`
+              - `label`: a text component
+              - `label_format`? (default options.generic_value): `STRING`
+              - `start`: `FLOAT`
+              - `end`: `FLOAT`
+              - `initial`?: `FLOAT`
+              - `step`?: `FLOAT`
+            - `minecraft:single_option`: compound `SingleOptionInput`
+              - `width`? (default 200): `INT`
+              - `options`: list
+                - each: compound `SingleOptionInput$Entry`
+                  - `id`: `STRING`
+                  - `display`?: a text component
+                  - `initial`? (default false): `BOOL`
+              - `label`: a text component
+              - `label_visible`? (default true): `BOOL`
+            - `minecraft:text`: compound `TextInput`
+              - `width`? (default 200): `INT`
+              - `label`: a text component
+              - `label_visible`? (default true): `BOOL`
+              - `initial`?: `STRING`
+              - `max_length`? (default 32): `INT`
+              - `multiline`?: compound `TextInput$MultilineOptions`
+                - `max_lines`?: `INT`
+                - `height`?: `INT`
+        - `actions`: list
+          - each: compound `ActionButton`
+            - `label`: a text component
+            - `tooltip`?: a text component
+            - `width`? (default 150): `INT`
+            - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+              - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                - `url`: `STRING`
+              - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                - `command`: `STRING`
+              - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                - `command`: `STRING`
+              - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+              - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                - `page`: `INT`
+              - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                - `value`: `STRING`
+              - `minecraft:custom`: compound `ClickEvent$Custom`
+                - `id`: `IDENTIFIER`
+                - `payload`?: an NBT tag
+              - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                - `template`: `STRING`
+              - `minecraft:dynamic/custom`: compound `CustomAll`
+                - `id`: `IDENTIFIER`
+                - `additions`?: an NBT tag
+        - `exit_action`?: compound `ActionButton`
+          - `label`: a text component
+          - `tooltip`?: a text component
+          - `width`? (default 150): `INT`
+          - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+            - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+              - `url`: `STRING`
+            - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+              - `command`: `STRING`
+            - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+              - `command`: `STRING`
+            - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+            - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+              - `page`: `INT`
+            - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+              - `value`: `STRING`
+            - `minecraft:custom`: compound `ClickEvent$Custom`
+              - `id`: `IDENTIFIER`
+              - `payload`?: an NBT tag
+            - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+              - `template`: `STRING`
+            - `minecraft:dynamic/custom`: compound `CustomAll`
+              - `id`: `IDENTIFIER`
+              - `additions`?: an NBT tag
+        - `columns`? (default 2): `INT`
+      - `minecraft:confirmation`: compound `ConfirmationDialog`
+        - `title`: a text component
+        - `external_title`?: a text component
+        - `can_close_with_escape`? (default true): `BOOL`
+        - `pause`? (default true): `BOOL`
+        - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+        - `body`? (default []): list
+          - each: compound, `type` (id in minecraft:dialog_body_type) selects
+            - `minecraft:item`: compound `ItemBody`
+              - `item`: compound `ItemStackTemplate`
+                - `id`: id in minecraft:item
+                - `count`? (default 1): `INT`
+                - `components`? (default EMPTY): an NBT tag
+              - `description`?: compound `PlainMessage`
+                - `contents`: a text component
+                - `width`? (default 200): `INT`
+              - `show_decorations`? (default true): `BOOL`
+              - `show_tooltip`? (default true): `BOOL`
+              - `width`? (default 16): `INT`
+              - `height`? (default 16): `INT`
+            - `minecraft:plain_message`: compound `PlainMessage`
+              - `contents`: a text component
+              - `width`? (default 200): `INT`
+        - `inputs`? (default []): list
+          - each: compound `Input`
+            - `key`: `STRING`
+            - `minecraft:boolean`: compound `BooleanInput`
+              - `label`: a text component
+              - `initial`? (default false): `BOOL`
+              - `on_true`? (default true): `STRING`
+              - `on_false`? (default false): `STRING`
+            - `minecraft:number_range`: compound `NumberRangeInput`
+              - `width`? (default 200): `INT`
+              - `label`: a text component
+              - `label_format`? (default options.generic_value): `STRING`
+              - `start`: `FLOAT`
+              - `end`: `FLOAT`
+              - `initial`?: `FLOAT`
+              - `step`?: `FLOAT`
+            - `minecraft:single_option`: compound `SingleOptionInput`
+              - `width`? (default 200): `INT`
+              - `options`: list
+                - each: compound `SingleOptionInput$Entry`
+                  - `id`: `STRING`
+                  - `display`?: a text component
+                  - `initial`? (default false): `BOOL`
+              - `label`: a text component
+              - `label_visible`? (default true): `BOOL`
+            - `minecraft:text`: compound `TextInput`
+              - `width`? (default 200): `INT`
+              - `label`: a text component
+              - `label_visible`? (default true): `BOOL`
+              - `initial`?: `STRING`
+              - `max_length`? (default 32): `INT`
+              - `multiline`?: compound `TextInput$MultilineOptions`
+                - `max_lines`?: `INT`
+                - `height`?: `INT`
+        - `yes`: compound `ActionButton`
+          - `label`: a text component
+          - `tooltip`?: a text component
+          - `width`? (default 150): `INT`
+          - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+            - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+              - `url`: `STRING`
+            - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+              - `command`: `STRING`
+            - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+              - `command`: `STRING`
+            - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+            - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+              - `page`: `INT`
+            - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+              - `value`: `STRING`
+            - `minecraft:custom`: compound `ClickEvent$Custom`
+              - `id`: `IDENTIFIER`
+              - `payload`?: an NBT tag
+            - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+              - `template`: `STRING`
+            - `minecraft:dynamic/custom`: compound `CustomAll`
+              - `id`: `IDENTIFIER`
+              - `additions`?: an NBT tag
+        - `no`: compound `ActionButton`
+          - `label`: a text component
+          - `tooltip`?: a text component
+          - `width`? (default 150): `INT`
+          - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+            - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+              - `url`: `STRING`
+            - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+              - `command`: `STRING`
+            - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+              - `command`: `STRING`
+            - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+            - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+              - `page`: `INT`
+            - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+              - `value`: `STRING`
+            - `minecraft:custom`: compound `ClickEvent$Custom`
+              - `id`: `IDENTIFIER`
+              - `payload`?: an NBT tag
+            - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+              - `template`: `STRING`
+            - `minecraft:dynamic/custom`: compound `CustomAll`
+              - `id`: `IDENTIFIER`
+              - `additions`?: an NBT tag
+- `change_page`: compound `ClickEvent$ChangePage`
+  - `page`: `INT`
+- `copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+  - `value`: `STRING`
+- `custom`: compound `ClickEvent$Custom`
+  - `id`: `IDENTIFIER`
+  - `payload`?: an NBT tag
+
+<a id="types-net-minecraft-network-chat-componentserialization"></a>
+### net.minecraft.network.chat.ComponentSerialization
+
+`net.minecraft.network.chat.ComponentSerialization`.CODEC
+
+- the codec: one of
+  - either: either `STRING` or list of a `Component` again
+  - or: compound `MutableComponent`
+    - `text`: compound `PlainTextContents`
+      - `text`: `STRING`
+    - `translatable`: compound `TranslatableContents`
+      - `translate`: `STRING`
+      - `fallback`?: `STRING`
+      - `with`?: list of either an NBT tag or a `Component` again
+    - `keybind`: compound `KeybindContents`
+      - `keybind`: `STRING`
+    - `score`: compound `ScoreContents`
+      - `score`: compound `ScoreContents`
+        - `name`: either `STRING` or `STRING`
+        - `objective`: `STRING`
+    - `selector`: compound `SelectorContents`
+      - `selector`: `STRING`
+      - `separator`?: a `Component` again
+    - `nbt`: compound `NbtContents`
+      - `nbt`: `STRING`
+      - `interpret`? (default false): `BOOL`
+      - `plain`? (default false): `BOOL`
+      - `separator`?: a `Component` again
+      - `entity`: compound `EntityDataSource`
+        - `entity`: `STRING`
+      - `block`: compound `BlockDataSource`
+        - `block`: `STRING`
+      - `storage`: compound `StorageDataSource`
+        - `storage`: `IDENTIFIER`
+    - `object`: compound `ObjectContents`
+      - `atlas`: compound `AtlasSprite`
+        - `atlas`? (default DEFAULT_ATLAS): `IDENTIFIER`
+        - `sprite`: `IDENTIFIER`
+      - `player`: compound `PlayerSprite`
+        - `player`: compound `ResolvableProfile`
+          - either: compound `GameProfile`
+            - `id`: `UUID`
+            - `name`: `STRING`
+            - `properties`? (default EMPTY): one of
+              - either: map of `STRING` to list of `STRING`
+              - or: list
+                - each: compound `ExtraCodecs`
+                  - `name`: `STRING`
+                  - `value`: `STRING`
+                  - `signature`?: `STRING`
+          - or: compound `ResolvableProfile$Partial`
+            - `name`?: `STRING`
+            - `id`?: `UUID`
+            - `properties`? (default EMPTY): one of
+              - either: map of `STRING` to list of `STRING`
+              - or: list
+                - each: compound `ExtraCodecs`
+                  - `name`: `STRING`
+                  - `value`: `STRING`
+                  - `signature`?: `STRING`
+          - `texture`?: `IDENTIFIER`
+          - `cape`?: `IDENTIFIER`
+          - `elytra`?: `IDENTIFIER`
+          - `model`?: enum `PlayerModelType` (var int, ids slim/wide: SLIM, WIDE)
+        - `hat`? (default true): `BOOL`
+      - `fallback`?: a `Component` again
+    - `extra`? (default []): list of a `Component` again
+    - `color`?: `STRING`
+    - `shadow_color`?: `INT`
+    - `bold`?: `BOOL`
+    - `italic`?: `BOOL`
+    - `underlined`?: `BOOL`
+    - `strikethrough`?: `BOOL`
+    - `obfuscated`?: `BOOL`
+    - `click_event`?: compound, `action` (enum `ClickEvent$Action` (var int, ids open_url/open_file/run_command/suggest_command/show_dialog/change_page/copy_to_clipboard/custom: OPEN_URL, OPEN_FILE, RUN_COMMAND, SUGGEST_COMMAND, SHOW_DIALOG, CHANGE_PAGE, COPY_TO_CLIPBOARD, CUSTOM)) selects
+      - `open_url`: compound `ClickEvent$OpenUrl`
+        - `url`: `STRING`
+      - `open_file`: compound `ClickEvent$OpenFile`
+        - `path`: `STRING`
+      - `run_command`: compound `ClickEvent$RunCommand`
+        - `command`: `STRING`
+      - `suggest_command`: compound `ClickEvent$SuggestCommand`
+        - `command`: `STRING`
+      - `show_dialog`: compound `ClickEvent$ShowDialog`
+        - `dialog`: id in minecraft:dialog or inline
+          - inline: compound, `type` (id in minecraft:dialog_type) selects
+            - `minecraft:notice`: compound `NoticeDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `action`? (default DEFAULT_ACTION): compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+            - `minecraft:server_links`: compound `ServerLinksDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `exit_action`?: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+              - `columns`? (default 2): `INT`
+              - `button_width`? (default 150): recursive `ServerLinksDialog.WIDTH_CODEC`: `INT`
+            - `minecraft:dialog_list`: compound `DialogListDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `dialogs`: set of minecraft:dialog (a tag or ids)
+              - `exit_action`?: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+              - `columns`? (default 2): `INT`
+              - `button_width`? (default 150): recursive `DialogListDialog.WIDTH_CODEC`: `INT`
+            - `minecraft:multi_action`: compound `MultiActionDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `actions`: list
+                - each: compound `ActionButton`
+                  - `label`: a text component
+                  - `tooltip`?: a text component
+                  - `width`? (default 150): `INT`
+                  - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                    - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                      - `url`: `STRING`
+                    - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                      - `command`: `STRING`
+                    - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                      - `command`: `STRING`
+                    - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                    - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                      - `page`: `INT`
+                    - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                      - `value`: `STRING`
+                    - `minecraft:custom`: compound `ClickEvent$Custom`
+                      - `id`: `IDENTIFIER`
+                      - `payload`?: an NBT tag
+                    - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                      - `template`: `STRING`
+                    - `minecraft:dynamic/custom`: compound `CustomAll`
+                      - `id`: `IDENTIFIER`
+                      - `additions`?: an NBT tag
+              - `exit_action`?: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+              - `columns`? (default 2): `INT`
+            - `minecraft:confirmation`: compound `ConfirmationDialog`
+              - `title`: a text component
+              - `external_title`?: a text component
+              - `can_close_with_escape`? (default true): `BOOL`
+              - `pause`? (default true): `BOOL`
+              - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+              - `body`? (default []): list
+                - each: compound, `type` (id in minecraft:dialog_body_type) selects
+                  - `minecraft:item`: compound `ItemBody`
+                    - `item`: compound `ItemStackTemplate`
+                      - `id`: id in minecraft:item
+                      - `count`? (default 1): `INT`
+                      - `components`? (default EMPTY): an NBT tag
+                    - `description`?: compound `PlainMessage`
+                      - `contents`: a text component
+                      - `width`? (default 200): `INT`
+                    - `show_decorations`? (default true): `BOOL`
+                    - `show_tooltip`? (default true): `BOOL`
+                    - `width`? (default 16): `INT`
+                    - `height`? (default 16): `INT`
+                  - `minecraft:plain_message`: compound `PlainMessage`
+                    - `contents`: a text component
+                    - `width`? (default 200): `INT`
+              - `inputs`? (default []): list
+                - each: compound `Input`
+                  - `key`: `STRING`
+                  - `minecraft:boolean`: compound `BooleanInput`
+                    - `label`: a text component
+                    - `initial`? (default false): `BOOL`
+                    - `on_true`? (default true): `STRING`
+                    - `on_false`? (default false): `STRING`
+                  - `minecraft:number_range`: compound `NumberRangeInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_format`? (default options.generic_value): `STRING`
+                    - `start`: `FLOAT`
+                    - `end`: `FLOAT`
+                    - `initial`?: `FLOAT`
+                    - `step`?: `FLOAT`
+                  - `minecraft:single_option`: compound `SingleOptionInput`
+                    - `width`? (default 200): `INT`
+                    - `options`: list
+                      - each: compound `SingleOptionInput$Entry`
+                        - `id`: `STRING`
+                        - `display`?: a text component
+                        - `initial`? (default false): `BOOL`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                  - `minecraft:text`: compound `TextInput`
+                    - `width`? (default 200): `INT`
+                    - `label`: a text component
+                    - `label_visible`? (default true): `BOOL`
+                    - `initial`?: `STRING`
+                    - `max_length`? (default 32): `INT`
+                    - `multiline`?: compound `TextInput$MultilineOptions`
+                      - `max_lines`?: `INT`
+                      - `height`?: `INT`
+              - `yes`: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+              - `no`: compound `ActionButton`
+                - `label`: a text component
+                - `tooltip`?: a text component
+                - `width`? (default 150): `INT`
+                - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                  - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                    - `url`: `STRING`
+                  - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                    - `command`: `STRING`
+                  - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                    - `command`: `STRING`
+                  - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                  - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                    - `page`: `INT`
+                  - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                    - `value`: `STRING`
+                  - `minecraft:custom`: compound `ClickEvent$Custom`
+                    - `id`: `IDENTIFIER`
+                    - `payload`?: an NBT tag
+                  - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                    - `template`: `STRING`
+                  - `minecraft:dynamic/custom`: compound `CustomAll`
+                    - `id`: `IDENTIFIER`
+                    - `additions`?: an NBT tag
+      - `change_page`: compound `ClickEvent$ChangePage`
+        - `page`: `INT`
+      - `copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+        - `value`: `STRING`
+      - `custom`: compound `ClickEvent$Custom`
+        - `id`: `IDENTIFIER`
+        - `payload`?: an NBT tag
+    - `hover_event`?: compound, `action` (enum `HoverEvent$Action` (var int, ids show_text/show_item/show_entity: SHOW_TEXT, SHOW_ITEM, SHOW_ENTITY)) selects
+      - `show_text`: compound `HoverEvent$ShowText`
+        - `value`: a text component
+      - `show_item`: compound `ItemStackTemplate`
+        - `id`: id in minecraft:item
+        - `count`? (default 1): `INT`
+        - `components`? (default EMPTY): an NBT tag
+      - `show_entity`: compound `HoverEvent$ShowEntity`
+        - `id`: id in minecraft:entity_type
+        - `uuid`: `UUID_LENIENT`
+        - `name`?: a text component
+    - `insertion`?: `STRING`
+    - `font`?: `IDENTIFIER`
+
+<a id="types-net-minecraft-network-chat-hoverevent"></a>
+### net.minecraft.network.chat.HoverEvent
+
+`net.minecraft.network.chat.HoverEvent`.CODEC
+
+- `action`: enum `HoverEvent$Action` (var int, ids show_text/show_item/show_entity: SHOW_TEXT, SHOW_ITEM, SHOW_ENTITY) selects the case
+- `show_text`: compound `HoverEvent$ShowText`
+  - `value`: a text component
+- `show_item`: compound `ItemStackTemplate`
+  - `id`: id in minecraft:item
+  - `count`? (default 1): `INT`
+  - `components`? (default EMPTY): an NBT tag
+- `show_entity`: compound `HoverEvent$ShowEntity`
+  - `id`: id in minecraft:entity_type
+  - `uuid`: `UUID_LENIENT`
+  - `name`?: a text component
+
+<a id="types-net-minecraft-network-chat-styleserializer"></a>
+### net.minecraft.network.chat.Style$Serializer
+
+`net.minecraft.network.chat.Style$Serializer`.MAP_CODEC
+
+- `color`?: `STRING`
+- `shadow_color`?: `INT`
+- `bold`?: `BOOL`
+- `italic`?: `BOOL`
+- `underlined`?: `BOOL`
+- `strikethrough`?: `BOOL`
+- `obfuscated`?: `BOOL`
+- `click_event`?: compound, `action` (enum `ClickEvent$Action` (var int, ids open_url/open_file/run_command/suggest_command/show_dialog/change_page/copy_to_clipboard/custom: OPEN_URL, OPEN_FILE, RUN_COMMAND, SUGGEST_COMMAND, SHOW_DIALOG, CHANGE_PAGE, COPY_TO_CLIPBOARD, CUSTOM)) selects
+  - `open_url`: compound `ClickEvent$OpenUrl`
+    - `url`: `STRING`
+  - `open_file`: compound `ClickEvent$OpenFile`
+    - `path`: `STRING`
+  - `run_command`: compound `ClickEvent$RunCommand`
+    - `command`: `STRING`
+  - `suggest_command`: compound `ClickEvent$SuggestCommand`
+    - `command`: `STRING`
+  - `show_dialog`: compound `ClickEvent$ShowDialog`
+    - `dialog`: id in minecraft:dialog or inline
+      - inline: compound, `type` (id in minecraft:dialog_type) selects
+        - `minecraft:notice`: compound `NoticeDialog`
+          - `title`: a text component
+          - `external_title`?: a text component
+          - `can_close_with_escape`? (default true): `BOOL`
+          - `pause`? (default true): `BOOL`
+          - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+          - `body`? (default []): list
+            - each: compound, `type` (id in minecraft:dialog_body_type) selects
+              - `minecraft:item`: compound `ItemBody`
+                - `item`: compound `ItemStackTemplate`
+                  - `id`: id in minecraft:item
+                  - `count`? (default 1): `INT`
+                  - `components`? (default EMPTY): an NBT tag
+                - `description`?: compound `PlainMessage`
+                  - `contents`: a text component
+                  - `width`? (default 200): `INT`
+                - `show_decorations`? (default true): `BOOL`
+                - `show_tooltip`? (default true): `BOOL`
+                - `width`? (default 16): `INT`
+                - `height`? (default 16): `INT`
+              - `minecraft:plain_message`: compound `PlainMessage`
+                - `contents`: a text component
+                - `width`? (default 200): `INT`
+          - `inputs`? (default []): list
+            - each: compound `Input`
+              - `key`: `STRING`
+              - `minecraft:boolean`: compound `BooleanInput`
+                - `label`: a text component
+                - `initial`? (default false): `BOOL`
+                - `on_true`? (default true): `STRING`
+                - `on_false`? (default false): `STRING`
+              - `minecraft:number_range`: compound `NumberRangeInput`
+                - `width`? (default 200): `INT`
+                - `label`: a text component
+                - `label_format`? (default options.generic_value): `STRING`
+                - `start`: `FLOAT`
+                - `end`: `FLOAT`
+                - `initial`?: `FLOAT`
+                - `step`?: `FLOAT`
+              - `minecraft:single_option`: compound `SingleOptionInput`
+                - `width`? (default 200): `INT`
+                - `options`: list
+                  - each: compound `SingleOptionInput$Entry`
+                    - `id`: `STRING`
+                    - `display`?: a text component
+                    - `initial`? (default false): `BOOL`
+                - `label`: a text component
+                - `label_visible`? (default true): `BOOL`
+              - `minecraft:text`: compound `TextInput`
+                - `width`? (default 200): `INT`
+                - `label`: a text component
+                - `label_visible`? (default true): `BOOL`
+                - `initial`?: `STRING`
+                - `max_length`? (default 32): `INT`
+                - `multiline`?: compound `TextInput$MultilineOptions`
+                  - `max_lines`?: `INT`
+                  - `height`?: `INT`
+          - `action`? (default DEFAULT_ACTION): compound `ActionButton`
+            - `label`: a text component
+            - `tooltip`?: a text component
+            - `width`? (default 150): `INT`
+            - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+              - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                - `url`: `STRING`
+              - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                - `command`: `STRING`
+              - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                - `command`: `STRING`
+              - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+              - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                - `page`: `INT`
+              - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                - `value`: `STRING`
+              - `minecraft:custom`: compound `ClickEvent$Custom`
+                - `id`: `IDENTIFIER`
+                - `payload`?: an NBT tag
+              - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                - `template`: `STRING`
+              - `minecraft:dynamic/custom`: compound `CustomAll`
+                - `id`: `IDENTIFIER`
+                - `additions`?: an NBT tag
+        - `minecraft:server_links`: compound `ServerLinksDialog`
+          - `title`: a text component
+          - `external_title`?: a text component
+          - `can_close_with_escape`? (default true): `BOOL`
+          - `pause`? (default true): `BOOL`
+          - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+          - `body`? (default []): list
+            - each: compound, `type` (id in minecraft:dialog_body_type) selects
+              - `minecraft:item`: compound `ItemBody`
+                - `item`: compound `ItemStackTemplate`
+                  - `id`: id in minecraft:item
+                  - `count`? (default 1): `INT`
+                  - `components`? (default EMPTY): an NBT tag
+                - `description`?: compound `PlainMessage`
+                  - `contents`: a text component
+                  - `width`? (default 200): `INT`
+                - `show_decorations`? (default true): `BOOL`
+                - `show_tooltip`? (default true): `BOOL`
+                - `width`? (default 16): `INT`
+                - `height`? (default 16): `INT`
+              - `minecraft:plain_message`: compound `PlainMessage`
+                - `contents`: a text component
+                - `width`? (default 200): `INT`
+          - `inputs`? (default []): list
+            - each: compound `Input`
+              - `key`: `STRING`
+              - `minecraft:boolean`: compound `BooleanInput`
+                - `label`: a text component
+                - `initial`? (default false): `BOOL`
+                - `on_true`? (default true): `STRING`
+                - `on_false`? (default false): `STRING`
+              - `minecraft:number_range`: compound `NumberRangeInput`
+                - `width`? (default 200): `INT`
+                - `label`: a text component
+                - `label_format`? (default options.generic_value): `STRING`
+                - `start`: `FLOAT`
+                - `end`: `FLOAT`
+                - `initial`?: `FLOAT`
+                - `step`?: `FLOAT`
+              - `minecraft:single_option`: compound `SingleOptionInput`
+                - `width`? (default 200): `INT`
+                - `options`: list
+                  - each: compound `SingleOptionInput$Entry`
+                    - `id`: `STRING`
+                    - `display`?: a text component
+                    - `initial`? (default false): `BOOL`
+                - `label`: a text component
+                - `label_visible`? (default true): `BOOL`
+              - `minecraft:text`: compound `TextInput`
+                - `width`? (default 200): `INT`
+                - `label`: a text component
+                - `label_visible`? (default true): `BOOL`
+                - `initial`?: `STRING`
+                - `max_length`? (default 32): `INT`
+                - `multiline`?: compound `TextInput$MultilineOptions`
+                  - `max_lines`?: `INT`
+                  - `height`?: `INT`
+          - `exit_action`?: compound `ActionButton`
+            - `label`: a text component
+            - `tooltip`?: a text component
+            - `width`? (default 150): `INT`
+            - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+              - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                - `url`: `STRING`
+              - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                - `command`: `STRING`
+              - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                - `command`: `STRING`
+              - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+              - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                - `page`: `INT`
+              - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                - `value`: `STRING`
+              - `minecraft:custom`: compound `ClickEvent$Custom`
+                - `id`: `IDENTIFIER`
+                - `payload`?: an NBT tag
+              - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                - `template`: `STRING`
+              - `minecraft:dynamic/custom`: compound `CustomAll`
+                - `id`: `IDENTIFIER`
+                - `additions`?: an NBT tag
+          - `columns`? (default 2): `INT`
+          - `button_width`? (default 150): recursive `ServerLinksDialog.WIDTH_CODEC`: `INT`
+        - `minecraft:dialog_list`: compound `DialogListDialog`
+          - `title`: a text component
+          - `external_title`?: a text component
+          - `can_close_with_escape`? (default true): `BOOL`
+          - `pause`? (default true): `BOOL`
+          - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+          - `body`? (default []): list
+            - each: compound, `type` (id in minecraft:dialog_body_type) selects
+              - `minecraft:item`: compound `ItemBody`
+                - `item`: compound `ItemStackTemplate`
+                  - `id`: id in minecraft:item
+                  - `count`? (default 1): `INT`
+                  - `components`? (default EMPTY): an NBT tag
+                - `description`?: compound `PlainMessage`
+                  - `contents`: a text component
+                  - `width`? (default 200): `INT`
+                - `show_decorations`? (default true): `BOOL`
+                - `show_tooltip`? (default true): `BOOL`
+                - `width`? (default 16): `INT`
+                - `height`? (default 16): `INT`
+              - `minecraft:plain_message`: compound `PlainMessage`
+                - `contents`: a text component
+                - `width`? (default 200): `INT`
+          - `inputs`? (default []): list
+            - each: compound `Input`
+              - `key`: `STRING`
+              - `minecraft:boolean`: compound `BooleanInput`
+                - `label`: a text component
+                - `initial`? (default false): `BOOL`
+                - `on_true`? (default true): `STRING`
+                - `on_false`? (default false): `STRING`
+              - `minecraft:number_range`: compound `NumberRangeInput`
+                - `width`? (default 200): `INT`
+                - `label`: a text component
+                - `label_format`? (default options.generic_value): `STRING`
+                - `start`: `FLOAT`
+                - `end`: `FLOAT`
+                - `initial`?: `FLOAT`
+                - `step`?: `FLOAT`
+              - `minecraft:single_option`: compound `SingleOptionInput`
+                - `width`? (default 200): `INT`
+                - `options`: list
+                  - each: compound `SingleOptionInput$Entry`
+                    - `id`: `STRING`
+                    - `display`?: a text component
+                    - `initial`? (default false): `BOOL`
+                - `label`: a text component
+                - `label_visible`? (default true): `BOOL`
+              - `minecraft:text`: compound `TextInput`
+                - `width`? (default 200): `INT`
+                - `label`: a text component
+                - `label_visible`? (default true): `BOOL`
+                - `initial`?: `STRING`
+                - `max_length`? (default 32): `INT`
+                - `multiline`?: compound `TextInput$MultilineOptions`
+                  - `max_lines`?: `INT`
+                  - `height`?: `INT`
+          - `dialogs`: set of minecraft:dialog (a tag or ids)
+          - `exit_action`?: compound `ActionButton`
+            - `label`: a text component
+            - `tooltip`?: a text component
+            - `width`? (default 150): `INT`
+            - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+              - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                - `url`: `STRING`
+              - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                - `command`: `STRING`
+              - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                - `command`: `STRING`
+              - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+              - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                - `page`: `INT`
+              - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                - `value`: `STRING`
+              - `minecraft:custom`: compound `ClickEvent$Custom`
+                - `id`: `IDENTIFIER`
+                - `payload`?: an NBT tag
+              - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                - `template`: `STRING`
+              - `minecraft:dynamic/custom`: compound `CustomAll`
+                - `id`: `IDENTIFIER`
+                - `additions`?: an NBT tag
+          - `columns`? (default 2): `INT`
+          - `button_width`? (default 150): recursive `DialogListDialog.WIDTH_CODEC`: `INT`
+        - `minecraft:multi_action`: compound `MultiActionDialog`
+          - `title`: a text component
+          - `external_title`?: a text component
+          - `can_close_with_escape`? (default true): `BOOL`
+          - `pause`? (default true): `BOOL`
+          - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+          - `body`? (default []): list
+            - each: compound, `type` (id in minecraft:dialog_body_type) selects
+              - `minecraft:item`: compound `ItemBody`
+                - `item`: compound `ItemStackTemplate`
+                  - `id`: id in minecraft:item
+                  - `count`? (default 1): `INT`
+                  - `components`? (default EMPTY): an NBT tag
+                - `description`?: compound `PlainMessage`
+                  - `contents`: a text component
+                  - `width`? (default 200): `INT`
+                - `show_decorations`? (default true): `BOOL`
+                - `show_tooltip`? (default true): `BOOL`
+                - `width`? (default 16): `INT`
+                - `height`? (default 16): `INT`
+              - `minecraft:plain_message`: compound `PlainMessage`
+                - `contents`: a text component
+                - `width`? (default 200): `INT`
+          - `inputs`? (default []): list
+            - each: compound `Input`
+              - `key`: `STRING`
+              - `minecraft:boolean`: compound `BooleanInput`
+                - `label`: a text component
+                - `initial`? (default false): `BOOL`
+                - `on_true`? (default true): `STRING`
+                - `on_false`? (default false): `STRING`
+              - `minecraft:number_range`: compound `NumberRangeInput`
+                - `width`? (default 200): `INT`
+                - `label`: a text component
+                - `label_format`? (default options.generic_value): `STRING`
+                - `start`: `FLOAT`
+                - `end`: `FLOAT`
+                - `initial`?: `FLOAT`
+                - `step`?: `FLOAT`
+              - `minecraft:single_option`: compound `SingleOptionInput`
+                - `width`? (default 200): `INT`
+                - `options`: list
+                  - each: compound `SingleOptionInput$Entry`
+                    - `id`: `STRING`
+                    - `display`?: a text component
+                    - `initial`? (default false): `BOOL`
+                - `label`: a text component
+                - `label_visible`? (default true): `BOOL`
+              - `minecraft:text`: compound `TextInput`
+                - `width`? (default 200): `INT`
+                - `label`: a text component
+                - `label_visible`? (default true): `BOOL`
+                - `initial`?: `STRING`
+                - `max_length`? (default 32): `INT`
+                - `multiline`?: compound `TextInput$MultilineOptions`
+                  - `max_lines`?: `INT`
+                  - `height`?: `INT`
+          - `actions`: list
+            - each: compound `ActionButton`
+              - `label`: a text component
+              - `tooltip`?: a text component
+              - `width`? (default 150): `INT`
+              - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+                - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                  - `url`: `STRING`
+                - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                  - `command`: `STRING`
+                - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                  - `command`: `STRING`
+                - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+                - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                  - `page`: `INT`
+                - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                  - `value`: `STRING`
+                - `minecraft:custom`: compound `ClickEvent$Custom`
+                  - `id`: `IDENTIFIER`
+                  - `payload`?: an NBT tag
+                - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                  - `template`: `STRING`
+                - `minecraft:dynamic/custom`: compound `CustomAll`
+                  - `id`: `IDENTIFIER`
+                  - `additions`?: an NBT tag
+          - `exit_action`?: compound `ActionButton`
+            - `label`: a text component
+            - `tooltip`?: a text component
+            - `width`? (default 150): `INT`
+            - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+              - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                - `url`: `STRING`
+              - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                - `command`: `STRING`
+              - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                - `command`: `STRING`
+              - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+              - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                - `page`: `INT`
+              - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                - `value`: `STRING`
+              - `minecraft:custom`: compound `ClickEvent$Custom`
+                - `id`: `IDENTIFIER`
+                - `payload`?: an NBT tag
+              - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                - `template`: `STRING`
+              - `minecraft:dynamic/custom`: compound `CustomAll`
+                - `id`: `IDENTIFIER`
+                - `additions`?: an NBT tag
+          - `columns`? (default 2): `INT`
+        - `minecraft:confirmation`: compound `ConfirmationDialog`
+          - `title`: a text component
+          - `external_title`?: a text component
+          - `can_close_with_escape`? (default true): `BOOL`
+          - `pause`? (default true): `BOOL`
+          - `after_action`? (default CLOSE): enum `DialogAction` (var int, ids close/none/wait_for_response: CLOSE, NONE, WAIT_FOR_RESPONSE)
+          - `body`? (default []): list
+            - each: compound, `type` (id in minecraft:dialog_body_type) selects
+              - `minecraft:item`: compound `ItemBody`
+                - `item`: compound `ItemStackTemplate`
+                  - `id`: id in minecraft:item
+                  - `count`? (default 1): `INT`
+                  - `components`? (default EMPTY): an NBT tag
+                - `description`?: compound `PlainMessage`
+                  - `contents`: a text component
+                  - `width`? (default 200): `INT`
+                - `show_decorations`? (default true): `BOOL`
+                - `show_tooltip`? (default true): `BOOL`
+                - `width`? (default 16): `INT`
+                - `height`? (default 16): `INT`
+              - `minecraft:plain_message`: compound `PlainMessage`
+                - `contents`: a text component
+                - `width`? (default 200): `INT`
+          - `inputs`? (default []): list
+            - each: compound `Input`
+              - `key`: `STRING`
+              - `minecraft:boolean`: compound `BooleanInput`
+                - `label`: a text component
+                - `initial`? (default false): `BOOL`
+                - `on_true`? (default true): `STRING`
+                - `on_false`? (default false): `STRING`
+              - `minecraft:number_range`: compound `NumberRangeInput`
+                - `width`? (default 200): `INT`
+                - `label`: a text component
+                - `label_format`? (default options.generic_value): `STRING`
+                - `start`: `FLOAT`
+                - `end`: `FLOAT`
+                - `initial`?: `FLOAT`
+                - `step`?: `FLOAT`
+              - `minecraft:single_option`: compound `SingleOptionInput`
+                - `width`? (default 200): `INT`
+                - `options`: list
+                  - each: compound `SingleOptionInput$Entry`
+                    - `id`: `STRING`
+                    - `display`?: a text component
+                    - `initial`? (default false): `BOOL`
+                - `label`: a text component
+                - `label_visible`? (default true): `BOOL`
+              - `minecraft:text`: compound `TextInput`
+                - `width`? (default 200): `INT`
+                - `label`: a text component
+                - `label_visible`? (default true): `BOOL`
+                - `initial`?: `STRING`
+                - `max_length`? (default 32): `INT`
+                - `multiline`?: compound `TextInput$MultilineOptions`
+                  - `max_lines`?: `INT`
+                  - `height`?: `INT`
+          - `yes`: compound `ActionButton`
+            - `label`: a text component
+            - `tooltip`?: a text component
+            - `width`? (default 150): `INT`
+            - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+              - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                - `url`: `STRING`
+              - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                - `command`: `STRING`
+              - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                - `command`: `STRING`
+              - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+              - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                - `page`: `INT`
+              - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                - `value`: `STRING`
+              - `minecraft:custom`: compound `ClickEvent$Custom`
+                - `id`: `IDENTIFIER`
+                - `payload`?: an NBT tag
+              - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                - `template`: `STRING`
+              - `minecraft:dynamic/custom`: compound `CustomAll`
+                - `id`: `IDENTIFIER`
+                - `additions`?: an NBT tag
+          - `no`: compound `ActionButton`
+            - `label`: a text component
+            - `tooltip`?: a text component
+            - `width`? (default 150): `INT`
+            - `action`?: compound, `type` (id in minecraft:dialog_action_type) selects
+              - `minecraft:open_url`: compound `ClickEvent$OpenUrl`
+                - `url`: `STRING`
+              - `minecraft:run_command`: compound `ClickEvent$RunCommand`
+                - `command`: `STRING`
+              - `minecraft:suggest_command`: compound `ClickEvent$SuggestCommand`
+                - `command`: `STRING`
+              - `minecraft:show_dialog`: a `ClickEvent$ShowDialog` again
+              - `minecraft:change_page`: compound `ClickEvent$ChangePage`
+                - `page`: `INT`
+              - `minecraft:copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+                - `value`: `STRING`
+              - `minecraft:custom`: compound `ClickEvent$Custom`
+                - `id`: `IDENTIFIER`
+                - `payload`?: an NBT tag
+              - `minecraft:dynamic/run_command`: compound `CommandTemplate`
+                - `template`: `STRING`
+              - `minecraft:dynamic/custom`: compound `CustomAll`
+                - `id`: `IDENTIFIER`
+                - `additions`?: an NBT tag
+  - `change_page`: compound `ClickEvent$ChangePage`
+    - `page`: `INT`
+  - `copy_to_clipboard`: compound `ClickEvent$CopyToClipboard`
+    - `value`: `STRING`
+  - `custom`: compound `ClickEvent$Custom`
+    - `id`: `IDENTIFIER`
+    - `payload`?: an NBT tag
+- `hover_event`?: compound, `action` (enum `HoverEvent$Action` (var int, ids show_text/show_item/show_entity: SHOW_TEXT, SHOW_ITEM, SHOW_ENTITY)) selects
+  - `show_text`: compound `HoverEvent$ShowText`
+    - `value`: a text component
+  - `show_item`: compound `ItemStackTemplate`
+    - `id`: id in minecraft:item
+    - `count`? (default 1): `INT`
+    - `components`? (default EMPTY): an NBT tag
+  - `show_entity`: compound `HoverEvent$ShowEntity`
+    - `id`: id in minecraft:entity_type
+    - `uuid`: `UUID_LENIENT`
+    - `name`?: a text component
+- `insertion`?: `STRING`
+- `font`?: `IDENTIFIER`
+
+<a id="types-net-minecraft-world-item-itemstack"></a>
+### net.minecraft.world.item.ItemStack
+
+`net.minecraft.world.item.ItemStack`.CODEC
+
+- the codec: compound `ItemStack`
+  - `id`: id in minecraft:item
+  - `count`? (default 1): `INT`
+  - `components`? (default EMPTY): an NBT tag
+
+<a id="types-net-minecraft-world-level-datapackconfig"></a>
+### net.minecraft.world.level.DataPackConfig
+
+`net.minecraft.world.level.DataPackConfig`.CODEC
+
+- `Enabled`: list of `STRING`
+- `Disabled`: list of `STRING`
+
+<a id="types-net-minecraft-world-level-worlddataconfiguration"></a>
+### net.minecraft.world.level.WorldDataConfiguration
+
+`net.minecraft.world.level.WorldDataConfiguration`.MAP_CODEC
+
+- `DataPacks`? (default DEFAULT): compound `DataPackConfig`
+  - `Enabled`: list of `STRING`
+  - `Disabled`: list of `STRING`
+- `enabled_features`? (default DEFAULT_FLAGS): list of `IDENTIFIER`
+
+<a id="types-net-minecraft-world-level-levelgen-worlddimensions"></a>
+### net.minecraft.world.level.levelgen.WorldDimensions
+
+`net.minecraft.world.level.levelgen.WorldDimensions`.CODEC
+
+- `dimensions`: compound of
+  - keys: resource key in minecraft:dimension
+  - values: compound `LevelStem`
+    - `type`: id in minecraft:dimension_type or inline
+      - inline: compound `DimensionType`
+        - `has_fixed_time`? (default false): `BOOL`
+        - `has_skylight`: `BOOL`
+        - `has_ceiling`: `BOOL`
+        - `has_ender_dragon_fight`: `BOOL`
+        - `coordinate_scale`: `DOUBLE`
+        - `min_y`: `INT`
+        - `height`: `INT`
+        - `logical_height`: `INT`
+        - `infiniburn`: set of minecraft:block (a tag or ids)
+        - `ambient_light`: `FLOAT`
+        - `monster_spawn_light_level`: one of
+          - either: `INT`
+          - or: compound, `type` (id in minecraft:int_provider_type) selects
+            - `minecraft:constant`: compound `ConstantInt`
+              - `value`: `INT`
+            - `minecraft:uniform`: compound `UniformInt`
+              - `min_inclusive`: `INT`
+              - `max_inclusive`: `INT`
+            - `minecraft:biased_to_bottom`: compound `BiasedToBottomInt`
+              - `min_inclusive`: `INT`
+              - `max_inclusive`: `INT`
+            - `minecraft:very_biased_to_bottom`: compound `VeryBiasedToBottomInt`
+              - `min_inclusive`: `INT`
+              - `max_inclusive`: `INT`
+            - `minecraft:clamped`: compound `ClampedInt`
+              - `source`: either `INT` or a `IntProviders` again
+              - `min_inclusive`: `INT`
+              - `max_inclusive`: `INT`
+            - `minecraft:weighted_list`: compound `WeightedListInt`
+              - `distribution`: list
+                - each: compound `Weighted`
+                  - `data`: either `INT` or a `IntProviders` again
+                  - `weight`: `INT`
+            - `minecraft:clamped_normal`: compound `ClampedNormalInt`
+              - `mean`: `FLOAT`
+              - `deviation`: `FLOAT`
+              - `min_inclusive`: `INT`
+              - `max_inclusive`: `INT`
+            - `minecraft:trapezoid`: compound `TrapezoidInt`
+              - `min`: `INT`
+              - `max`: `INT`
+              - `plateau`: `INT`
+        - `monster_spawn_block_light_limit`: `INT`
+        - `skybox`? (default OVERWORLD): enum `DimensionType$Skybox` (var int, ids none/overworld/end: NONE, OVERWORLD, END)
+        - `cardinal_light`? (default DEFAULT): enum `CardinalLighting$Type` (var int, ids default/nether: DEFAULT, NETHER)
+        - `attributes`? (default EMPTY): map of id in minecraft:environment_attribute to an NBT tag
+        - `timelines`? (default []): set of minecraft:timeline (a tag or ids)
+        - `default_clock`?: id in minecraft:world_clock
+    - `generator`: compound, `type` (id in minecraft:worldgen/chunk_generator) selects
+      - `minecraft:noise`: compound `NoiseBasedChunkGenerator`
+        - `biome_source`: compound, `type` (id in minecraft:worldgen/biome_source) selects
+          - `minecraft:fixed`: compound `Fixed`
+            - `biome`: id in minecraft:worldgen/biome or inline
+              - inline: compound `Biome`
+                - `has_precipitation`: `BOOL`
+                - `temperature`: `FLOAT`
+                - `temperature_modifier`? (default NONE): enum `Biome$TemperatureModifier` (var int, ids none/frozen: NONE, FROZEN)
+                - `downfall`: `FLOAT`
+                - `attributes`? (default EMPTY): map of id in minecraft:environment_attribute to an NBT tag
+                - `effects`: compound `BiomeSpecialEffects`
+                  - `water_color`: `RGB_COLOR`
+                  - `foliage_color`?: `RGB_COLOR`
+                  - `dry_foliage_color`?: `RGB_COLOR`
+                  - `grass_color`?: `RGB_COLOR`
+                  - `grass_color_modifier`? (default NONE): enum `BiomeSpecialEffects$GrassColorModifier` (var int, ids none/dark_forest/swamp: NONE, DARK_FOREST, SWAMP)
+                - `carvers`: set of minecraft:worldgen/carver (a tag or ids)
+                - `features`: list of set of minecraft:worldgen/placed_feature (a tag or ids)
+          - `minecraft:multi_noise`: either field or field
+          - `minecraft:checkerboard`: compound `CheckerboardColumnBiomeSource`
+            - `biomes`: set of minecraft:worldgen/biome (a tag or ids)
+            - `scale`? (default 2): `INT`
+          - `minecraft:the_end`: compound `TheEndBiomeSource`
+        - `settings`: id in minecraft:worldgen/noise_settings or inline
+          - inline: compound `NoiseGeneratorSettings`
+            - `noise`: compound `NoiseSettings`
+              - `min_y`: `INT`
+              - `height`: `INT`
+            - `default_block`: one of
+              - either: id in minecraft:block
+              - or: compound `BlockState`
+                - `id`: id in minecraft:block
+                - `properties`?: map of `STRING` to `STRING`
+            - `default_fluid`: one of
+              - either: id in minecraft:block
+              - or: compound `BlockState`
+                - `id`: id in minecraft:block
+                - `properties`?: map of `STRING` to `STRING`
+            - `noise_router`: compound `NoiseRouter`
+              - `temperature`: recursive `DensityFunction`
+                - the codec: id in minecraft:worldgen/density_function or inline
+                  - inline: one of
+                    - either: `FLOAT`
+                    - or: compound, `type` (id in minecraft:worldgen/density_function_type) selects
+                      - `minecraft:constant`: compound `ConstantFunction`
+                        - `value`: `FLOAT`
+                      - `minecraft:noise`: compound `NoiseFunction`
+                        - `noise`: id in minecraft:worldgen/noise or inline
+                          - inline: compound `NormalNoise$Parameters`
+                            - `base_amplitude`? (default 1.0): `DOUBLE`
+                            - `base_octave`: `INT`
+                            - `octave_count`? (default 1): `INT`
+                            - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+                            - `amplitude_modifiers`? (default of): list of `DOUBLE`
+                        - `xz_scale`: `DOUBLE`
+                        - `y_scale`: `DOUBLE`
+                        - `shift_x`? (default zero): a `DensityFunction` again
+                        - `shift_y`? (default zero): a `DensityFunction` again
+                        - `shift_z`? (default zero): a `DensityFunction` again
+                      - `minecraft:end_outer_islands`: nothing
+                      - `minecraft:distance_to_point`: compound `DistanceToPointFunction`
+                        - `point`: `INT_ARRAY`
+                        - `metric`: enum `DistanceMetric` (var int, ids euclidean/euclidean_squared/manhattan/chebyshev: EUCLIDEAN, EUCLIDEAN_SQUARED, MANHATTAN, CHEBYSHEV)
+                      - `minecraft:gradient`: compound `GradientFunction`
+                        - `axis`: enum `Direction$Axis` (var int, ids x/y/z: X, Y, Z)
+                        - `tiling`? (default CLAMP_TO_EDGE): enum `TilingMode` (var int, ids clamp_to_edge/repeat/mirrored_repeat: CLAMP_TO_EDGE, REPEAT, MIRRORED_REPEAT)
+                        - `from_coordinate`: `INT`
+                        - `to_coordinate`: `INT`
+                        - `from_value`: `FLOAT`
+                        - `to_value`: `FLOAT`
+                      - `minecraft:shift_a`: compound `ShiftNoiseFunction$ShiftA`
+                        - `noise`: id in minecraft:worldgen/noise or inline
+                          - inline: compound `NormalNoise$Parameters`
+                            - `base_amplitude`? (default 1.0): `DOUBLE`
+                            - `base_octave`: `INT`
+                            - `octave_count`? (default 1): `INT`
+                            - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+                            - `amplitude_modifiers`? (default of): list of `DOUBLE`
+                      - `minecraft:shift_b`: compound `ShiftNoiseFunction$ShiftB`
+                        - `noise`: id in minecraft:worldgen/noise or inline
+                          - inline: compound `NormalNoise$Parameters`
+                            - `base_amplitude`? (default 1.0): `DOUBLE`
+                            - `base_octave`: `INT`
+                            - `octave_count`? (default 1): `INT`
+                            - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+                            - `amplitude_modifiers`? (default of): list of `DOUBLE`
+                      - `minecraft:shift`: compound `ShiftNoiseFunction$Shift`
+                        - `noise`: id in minecraft:worldgen/noise or inline
+                          - inline: compound `NormalNoise$Parameters`
+                            - `base_amplitude`? (default 1.0): `DOUBLE`
+                            - `base_octave`: `INT`
+                            - `octave_count`? (default 1): `INT`
+                            - `normalize`? (default ENABLED): either `BOOL` or `STRING`
+                            - `amplitude_modifiers`? (default of): list of `DOUBLE`
+                      - `minecraft:pow`: compound `PowFunction`
+                        - `base`: a `DensityFunction` again
+                        - `exponent`: a `DensityFunction` again
+                      - `minecraft:spline`: compound `Spline`
+                        - `spline`: recursive `CubicSpline`
+                          - the codec: one of
+                            - either: `FLOAT`
+                            - or: compound `CubicSpline$Multipoint`
+                              - `coordinate`: a `DensityFunction` again
+                              - `points`: list
+                                - each: compound `CubicSpline$Multipoint$Point`
+                                  - `location`: `FLOAT`
+                                  - `value`: a `CubicSpline` again
+                                  - `derivative`: `FLOAT`
+                      - `minecraft:lerp`: compound `LerpFunction`
+                        - `alpha`: a `DensityFunction` again
+                        - `first`: a `DensityFunction` again
+                        - `second`: a `DensityFunction` again
+                      - `minecraft:clamp`: compound `ClampFunction`
+                        - `input`: a `DensityFunction` again
+                        - `min`: `FLOAT`
+                        - `max`: `FLOAT`
+                      - `minecraft:range_choice`: compound `RangeChoiceFunction`
+                        - `input`: a `DensityFunction` again
+                        - `min_inclusive`: `FLOAT`
+                        - `max_exclusive`: `FLOAT`
+                        - `when_in_range`: a `DensityFunction` again
+                        - `when_out_of_range`: a `DensityFunction` again
+                      - `minecraft:interval_select`: compound `IntervalSelectFunction`
+                        - `input`: a `DensityFunction` again
+                        - `thresholds`: list of `FLOAT`
+                        - `functions`: list of a `DensityFunction` again
+                      - `minecraft:cache`: compound `CacheFunction`
+                        - `input`: a `DensityFunction` again
+                      - `minecraft:blend_density`: compound `BlendDensityFunction`
+                        - `input`: a `DensityFunction` again
+                      - `minecraft:interpolated`: compound `InterpolatedFunction`
+                        - `input`: a `DensityFunction` again
+                        - `cell_size_xz`: `INT`
+                        - `cell_size_y`: `INT`
+                      - `minecraft:slice`: compound `SliceFunction`
+                        - `axis`: enum `Direction$Axis` (var int, ids x/y/z: X, Y, Z)
+                        - `coordinate`: `INT`
+                        - `input`: a `DensityFunction` again
+                      - `minecraft:find_top_surface`: compound `FindTopSurfaceFunction`
+                        - `density`: a `DensityFunction` again
+                        - `upper_bound`: a `DensityFunction` again
+                        - `lower_bound`: `INT`
+                        - `cell_height`: `INT`
+                      - `minecraft:old_blended_noise`: compound `BlendedNoise`
+                        - `xz_scale`: `DOUBLE`
+                        - `y_scale`: `DOUBLE`
+                        - `xz_factor`: `DOUBLE`
+                        - `y_factor`: `DOUBLE`
+                        - `smear_scale_multiplier`: `DOUBLE`
+              - `vegetation`: recursive `DensityFunction`
+                - the codec `DensityFunction`, spelled out above
+              - `continents`: recursive `DensityFunction`
+                - the codec `DensityFunction`, spelled out above
+              - `erosion`: recursive `DensityFunction`
+                - the codec `DensityFunction`, spelled out above
+              - `depth`: recursive `DensityFunction`
+                - the codec `DensityFunction`, spelled out above
+              - `ridges`: recursive `DensityFunction`
+                - the codec `DensityFunction`, spelled out above
+              - `chunk_surface_level`: recursive `DensityFunction`
+                - the codec `DensityFunction`, spelled out above
+              - `final_density`: recursive `DensityFunction`
+                - the codec `DensityFunction`, spelled out above
+            - `material_rule`: recursive `MaterialRule.HOLDER_CODEC`
+              - the codec: id in minecraft:worldgen/material_rule or inline
+                - inline: compound, `type` (id in minecraft:worldgen/material_rule_type) selects
+                  - `minecraft:block`: compound `BlockRule`
+                    - `result_state`: one of
+                      - either: id in minecraft:block
+                      - or: compound `BlockState`
+                        - `id`: id in minecraft:block
+                        - `properties`?: map of `STRING` to `STRING`
+                  - `minecraft:bandlands`: nothing
+                  - `minecraft:sequence`: compound `SequenceRule`
+                    - `sequence`: list of a `MaterialRule.HOLDER_CODEC` again
+                  - `minecraft:condition`: compound `ConditionRule`
+                    - `if_true`: recursive `MaterialCondition`
+                      - the codec: id in minecraft:worldgen/material_condition or inline
+                        - inline: compound, `type` (id in minecraft:worldgen/material_condition_type) selects
+                          - `minecraft:biome`: compound `BiomeCondition`
+                            - `biome_is`: set of minecraft:worldgen/biome (a tag or ids)
+                          - `minecraft:noise_threshold`: compound `NoiseThresholdCondition`
+                            - `noise`: resource key in minecraft:worldgen/noise
+                            - `min_threshold`: `DOUBLE`
+                            - `max_threshold`: `DOUBLE`
+                            - `is_3d`? (default false): `BOOL`
+                          - `minecraft:vertical_gradient`: compound `VerticalGradientCondition`
+                            - `random_name`: `IDENTIFIER`
+                            - `true_at_and_below`: either field or either field or either field or field
+                            - `false_at_and_above`: either field or either field or either field or field
+                          - `minecraft:y_above`: compound `YCondition`
+                            - `anchor`: either field or either field or either field or field
+                            - `surface_depth_multiplier`: `INT`
+                            - `add_stone_depth`: `BOOL`
+                          - `minecraft:water`: compound `WaterCondition`
+                            - `offset`: `INT`
+                            - `surface_depth_multiplier`: `INT`
+                            - `add_stone_depth`: `BOOL`
+                          - `minecraft:temperature`: nothing
+                          - `minecraft:steep`: nothing
+                          - `minecraft:not`: compound `NotCondition`
+                            - `invert`: a `MaterialCondition` again
+                          - `minecraft:hole`: nothing
+                          - `minecraft:above_preliminary_surface`: nothing
+                          - `minecraft:stone_depth`: compound `StoneDepthCondition`
+                            - `offset`: `INT`
+                            - `add_surface_depth`: `BOOL`
+                            - `secondary_depth_range`: `INT`
+                            - `surface_type`: enum `CaveSurface` (var int, ids ceiling/floor: CEILING, FLOOR)
+                    - `then_run`: a `MaterialRule.HOLDER_CODEC` again
+                  - `minecraft:ore_vein`: compound `OreVeinRule`
+                    - `ore_block`: one of
+                      - either: id in minecraft:block
+                      - or: compound `BlockState`
+                        - `id`: id in minecraft:block
+                        - `properties`?: map of `STRING` to `STRING`
+                    - `raw_ore_block`: one of
+                      - either: id in minecraft:block
+                      - or: compound `BlockState`
+                        - `id`: id in minecraft:block
+                        - `properties`?: map of `STRING` to `STRING`
+                    - `filler_block`: one of
+                      - either: id in minecraft:block
+                      - or: compound `BlockState`
+                        - `id`: id in minecraft:block
+                        - `properties`?: map of `STRING` to `STRING`
+                    - `raw_ore_chance`: `FLOAT`
+                    - `density`: recursive `DensityFunction`
+                      - the codec `DensityFunction`, spelled out above
+                    - `richness`: recursive `DensityFunction`
+                      - the codec `DensityFunction`, spelled out above
+                    - `filler_gap`: recursive `DensityFunction`
+                      - the codec `DensityFunction`, spelled out above
+            - `spawn_target`: list of map of id in minecraft:worldgen/density_function to either `FLOAT` or list of `FLOAT`
+            - `sea_level`: `INT`
+            - `disable_mob_generation`: `BOOL`
+            - `aquifers`?: compound `Aquifer$Config`
+              - `barrier`: recursive `DensityFunction`
+                - the codec `DensityFunction`, spelled out above
+              - `fluid_level_floodedness`: recursive `DensityFunction`
+                - the codec `DensityFunction`, spelled out above
+              - `fluid_level_spread`: recursive `DensityFunction`
+                - the codec `DensityFunction`, spelled out above
+              - `lava`: recursive `DensityFunction`
+                - the codec `DensityFunction`, spelled out above
+              - `exclusion`: recursive `DensityFunction`
+                - the codec `DensityFunction`, spelled out above
+              - `surface_level`: recursive `DensityFunction`
+                - the codec `DensityFunction`, spelled out above
+            - `legacy_random_source`: `BOOL`
+            - `debug_functions`? (default EMPTY): list
+              - each: compound `NoiseGeneratorSettings$DebugFunctionEntry`
+                - `label`: `STRING`
+                - `function`: recursive `DensityFunction`
+                  - the codec `DensityFunction`, spelled out above
+      - `minecraft:flat`: compound `FlatLevelSource`
+        - `settings`: compound `FlatLevelGeneratorSettings`
+          - `structure_overrides`?: set of minecraft:worldgen/structure_set (a tag or ids)
+          - `layers`: list
+            - each: compound `FlatLayerInfo`
+              - `height`: `INT`
+              - `block`: id in minecraft:block
+          - `lakes`? (default false): `BOOL`
+          - `features`? (default false): `BOOL`
+          - `biome`?: id in minecraft:worldgen/biome or inline
+            - inline: compound `Biome`
+              - `has_precipitation`: `BOOL`
+              - `temperature`: `FLOAT`
+              - `temperature_modifier`? (default NONE): enum `Biome$TemperatureModifier` (var int, ids none/frozen: NONE, FROZEN)
+              - `downfall`: `FLOAT`
+              - `attributes`? (default EMPTY): map of id in minecraft:environment_attribute to an NBT tag
+              - `effects`: compound `BiomeSpecialEffects`
+                - `water_color`: `RGB_COLOR`
+                - `foliage_color`?: `RGB_COLOR`
+                - `dry_foliage_color`?: `RGB_COLOR`
+                - `grass_color`?: `RGB_COLOR`
+                - `grass_color_modifier`? (default NONE): enum `BiomeSpecialEffects$GrassColorModifier` (var int, ids none/dark_forest/swamp: NONE, DARK_FOREST, SWAMP)
+              - `carvers`: set of minecraft:worldgen/carver (a tag or ids)
+              - `features`: list of set of minecraft:worldgen/placed_feature (a tag or ids)
+      - `minecraft:debug`: compound `DebugLevelSource`
+
+<a id="types-net-minecraft-world-level-levelgen-worldoptions"></a>
+### net.minecraft.world.level.levelgen.WorldOptions
+
+`net.minecraft.world.level.levelgen.WorldOptions`.CODEC
+
+- `seed`: `LONG`
+- `generate_structures`? (default true): `BOOL`
+- `bonus_chest`? (default false): `BOOL`
+- `legacy_custom_options`?: `STRING`
+
+<a id="types-net-minecraft-world-level-storage-leveldatarespawndata"></a>
+### net.minecraft.world.level.storage.LevelData$RespawnData
+
+`net.minecraft.world.level.storage.LevelData$RespawnData`.MAP_CODEC
+
+- `dimension`: resource key in minecraft:dimension
+- `pos`: `INT_ARRAY`
+- `yaw`: `FLOAT`
+- `pitch`: `FLOAT`
+
